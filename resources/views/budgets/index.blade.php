@@ -70,7 +70,7 @@
 
     @if($hasFilter)
         <div class="filter-summary">
-            <span><strong>{{ count($payload['rows']) }}</strong> baris ditemukan @if(request('q'))untuk “{{ request('q') }}”@endif @if(request('category'))di {{ request('category') }}@endif</span>
+            <span><strong>{{ count($payload['rows']) }}</strong> baris ditemukan @if(request('q'))untuk “{{ request('q') }}”@endif @if(request('category'))di {{ request('category') }}@endif @if(! $payload['search']->isEmpty() && count($payload['rows']) > 1)<span class="filter-hint">· diurutkan dari yang paling cocok</span>@endif</span>
             <a href="{{ route('budgets.index', array_filter(['year' => $payload['year'], 'type' => $type])) }}"><x-icon name="x" /> Hapus filter</a>
         </div>
     @endif

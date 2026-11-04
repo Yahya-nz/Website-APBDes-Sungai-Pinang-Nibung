@@ -42,7 +42,7 @@
             <tbody>
             @forelse($payload['rows'] as $row)
                 <tr style="--row: {{ $loop->index }}">
-                    <td data-label="Uraian"><span class="row-title">{{ $row['description'] }}</span><span class="row-sub">{{ $row['category'] }}@if($row['is_demo']) · <span class="demo-tag">contoh</span>@endif</span></td>
+                    <td data-label="Uraian"><span class="row-title">{{ $payload['search']->highlight($row['description']) }}</span><span class="row-sub">{{ $payload['search']->highlight($row['category']) }}@if($row['is_demo']) · <span class="demo-tag">contoh</span>@endif</span></td>
                     <td data-label="Jenis"><span class="type-label"><span class="type-dot type-{{ $row['type'] }}"></span>{{ $row['type'] === 'income' ? 'Pendapatan' : 'Belanja' }}</span></td>
                     <td data-label="Anggaran" class="num"><x-money :value="$row['amount']" /></td>
                     <td data-label="Status"><x-status :status="$row['verification_status']" /></td>

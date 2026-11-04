@@ -18,7 +18,7 @@
         <ul class="link-list">
             <li><a href="{{ route('dashboard') }}"><strong>Ringkasan</strong><span>Total pendapatan dan belanja, sumber pendapatan, dan belanja per bidang.</span><x-icon name="arrow-right" /></a></li>
             <li><a href="{{ route('budgets.index') }}"><strong>Rincian anggaran</strong><span>Cari kegiatan, saring per bidang atau status, lalu unduh sebagai CSV.</span><x-icon name="arrow-right" /></a></li>
-            <li><a href="{{ route('quality') }}"><strong>Sumber data</strong><span>Daftar dataset beserta status pemeriksaannya.</span><x-icon name="arrow-right" /></a></li>
+            <li><a href="{{ route('quality') }}"><strong>Kualitas data</strong><span>Daftar dataset beserta status pemeriksaannya.</span><x-icon name="arrow-right" /></a></li>
         </ul>
 
         <h2>Istilah yang sering muncul</h2>

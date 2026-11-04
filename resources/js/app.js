@@ -1,16 +1,17 @@
 import { Chart, DoughnutController, ArcElement, Tooltip } from 'chart.js';
 import {
-    createIcons, ArrowBigUp, ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUpFromLine, CalendarX2, ChevronDown, ChevronsLeft,
-    CircleAlert, CircleCheck, Database, Download, Eye, EyeOff, FileCheck2, FileDown, FileSpreadsheet, FileUp, FlaskConical,
-    FolderOpen, History, Info, LayoutGrid, Lock, LogIn, LogOut, Menu, Pencil, PencilRuler, Plus, Search, SearchX, Table2,
-    Trash2, Upload, UserRound, Wallet, X,
+    createIcons,
+    ArrowBigUp, ArrowLeft, ArrowRight, CalendarX2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheck,
+    Database, Download, Eye, EyeOff, FileDown, FileSpreadsheet, FileUp, Files, FlaskConical, FolderOpen, History, Info,
+    Landmark, LayoutDashboard, Lock, LogIn, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Pencil, PencilRuler, Plus,
+    Search, SearchX, ShieldCheck, SlidersHorizontal, Trash2, Upload, UserRound, Wallet, X,
 } from 'lucide';
 
 const icons = {
-    ArrowBigUp, ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUpFromLine, CalendarX2, ChevronDown, ChevronsLeft, CircleAlert,
-    CircleCheck, Database, Download, Eye, EyeOff, FileCheck2, FileDown, FileSpreadsheet, FileUp, FlaskConical, FolderOpen,
-    History, Info, LayoutGrid, Lock, LogIn, LogOut, Menu, Pencil, PencilRuler, Plus, Search, SearchX, Table2, Trash2, Upload,
-    UserRound, Wallet, X,
+    ArrowBigUp, ArrowLeft, ArrowRight, CalendarX2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheck,
+    Database, Download, Eye, EyeOff, FileDown, FileSpreadsheet, FileUp, Files, FlaskConical, FolderOpen, History, Info,
+    Landmark, LayoutDashboard, Lock, LogIn, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Pencil, PencilRuler, Plus,
+    Search, SearchX, ShieldCheck, SlidersHorizontal, Trash2, Upload, UserRound, Wallet, X,
 };
 const renderIcons = () => createIcons({ icons });
 renderIcons();
@@ -95,15 +96,6 @@ const syncTopbar = () => topbar?.classList.toggle('is-scrolled', window.scrollY 
 window.addEventListener('scroll', syncTopbar, { passive: true });
 syncTopbar();
 
-const globalSearch = document.querySelector('[data-global-search]');
-document.addEventListener('keydown', (event) => {
-    const typing = event.target.closest?.('input, textarea, select, [contenteditable]');
-    if (event.key === '/' && !typing && globalSearch && !document.querySelector('dialog[open]')) {
-        event.preventDefault();
-        globalSearch.focus();
-        globalSearch.select();
-    }
-});
 
 document.querySelectorAll('[data-auto-submit]').forEach((select) => select.addEventListener('change', () => select.form.requestSubmit()));
 
@@ -112,43 +104,190 @@ document.getElementById('profile-menu')?.addEventListener('toggle', (event) => {
 });
 
 /* ---------- Sidebar ---------- */
+const shortcutHint = document.querySelector('[data-shortcut-hint]');
+if (shortcutHint && !/Mac|iPhone|iPad/.test(navigator.platform)) shortcutHint.textContent = 'Ctrl K';
+
+const sidebarToggles = [...document.querySelectorAll('[data-sidebar-toggle]')];
 const sidebar = document.getElementById('sidebar');
 const appMain = document.querySelector('.app-main');
-const openButton = document.querySelector('[data-sidebar-open]');
-const collapseButton = document.querySelector('[data-sidebar-collapse]');
-const desktop = window.matchMedia('(min-width: 961px)');
+const desktopSidebar = window.matchMedia('(min-width: 961px)');
+const navGroupToggle = document.querySelector('[data-nav-group-toggle]');
+const dashboardSubmenu = document.getElementById('dashboard-submenu');
+const dashboardFlyout = document.getElementById('dashboard-flyout');
+const sidebarSearch = document.getElementById('sidebar-search');
+let dashboardGroupExpanded = navGroupToggle?.getAttribute('aria-expanded') !== 'false';
+
+function sidebarIsRail() {
+    return desktopSidebar.matches && document.documentElement.classList.contains('sidebar-collapsed');
+}
+
+function flyoutIsOpen() {
+    return dashboardFlyout?.matches(':popover-open') ?? false;
+}
+
+function syncDashboardGroup() {
+    if (!navGroupToggle || !dashboardSubmenu) return;
+    const rail = sidebarIsRail();
+    dashboardSubmenu.hidden = rail || !dashboardGroupExpanded;
+    navGroupToggle.setAttribute('aria-controls', rail ? 'dashboard-flyout' : 'dashboard-submenu');
+    navGroupToggle.setAttribute('aria-expanded', String(rail ? flyoutIsOpen() : dashboardGroupExpanded));
+}
+
+function closeDashboardFlyout(restoreFocus = false) {
+    if (!flyoutIsOpen()) return;
+    const focusInside = dashboardFlyout.contains(document.activeElement);
+    dashboardFlyout.hidePopover();
+    syncDashboardGroup();
+    if (restoreFocus && focusInside) navGroupToggle?.focus();
+}
+
+function positionDashboardFlyout() {
+    if (!dashboardFlyout || !navGroupToggle) return;
+    const trigger = navGroupToggle.getBoundingClientRect();
+    const width = dashboardFlyout.offsetWidth || 228;
+    const height = dashboardFlyout.offsetHeight || 190;
+    const left = Math.max(8, Math.min(trigger.right + 14, window.innerWidth - width - 12));
+    const top = Math.max(12, Math.min(trigger.top - 4, window.innerHeight - height - 12));
+    dashboardFlyout.style.left = `${left}px`;
+    dashboardFlyout.style.top = `${top}px`;
+    dashboardFlyout.style.right = 'auto';
+    dashboardFlyout.style.bottom = 'auto';
+    dashboardFlyout.style.maxHeight = `${Math.max(120, window.innerHeight - 24)}px`;
+}
+
+function openDashboardFlyout() {
+    if (!dashboardFlyout || !sidebarIsRail()) return;
+    positionDashboardFlyout();
+    dashboardFlyout.showPopover({ source: navGroupToggle });
+    positionDashboardFlyout();
+    syncDashboardGroup();
+    dashboardFlyout.querySelector('a')?.focus();
+}
+
+function sidebarFocusReturn() {
+    return sidebarToggles.find((button) => !sidebar?.contains(button)) || sidebarToggles[0];
+}
+
+function sidebarFocusableElements() {
+    return [...sidebar.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
+        .filter((element) => element.getClientRects().length && !element.closest('[hidden]'));
+}
 
 function syncSidebar() {
-    if (!sidebar) return;
+    if (!sidebar || !appMain) return;
+    const desktop = desktopSidebar.matches;
+    const rail = sidebarIsRail();
     const mobileOpen = document.body.classList.contains('sidebar-open');
-    const collapsed = document.documentElement.classList.contains('sidebar-collapsed');
-    sidebar.inert = !desktop.matches && !mobileOpen;
-    if (appMain) appMain.inert = !desktop.matches && mobileOpen;
-    openButton?.setAttribute('aria-expanded', String(mobileOpen));
-    if (collapseButton) {
-        collapseButton.setAttribute('aria-expanded', String(!collapsed));
-        collapseButton.querySelector('.nav-text').textContent = collapsed ? 'Lebarkan menu' : 'Ciutkan menu';
-        collapseButton.title = collapsed ? 'Lebarkan menu' : 'Ciutkan menu';
+    const visible = desktop || mobileOpen;
+    const focusedInSidebar = sidebar.contains(document.activeElement);
+    const focusedInFlyout = dashboardFlyout?.contains(document.activeElement);
+    sidebar.inert = !visible;
+    appMain.inert = !desktop && mobileOpen;
+    sidebar.setAttribute('aria-hidden', String(!visible));
+    if (!visible && focusedInSidebar) sidebarFocusReturn()?.focus();
+    if (rail && dashboardSubmenu?.contains(document.activeElement)) navGroupToggle?.focus();
+    if (!rail && focusedInFlyout) navGroupToggle?.focus();
+    for (const button of sidebarToggles) {
+        const expanded = desktop ? !rail : mobileOpen;
+        const label = desktop ? (rail ? 'Perluas sidebar' : 'Ringkas sidebar') : (mobileOpen ? 'Tutup navigasi' : 'Buka navigasi');
+        button.setAttribute('aria-expanded', String(expanded));
+        button.setAttribute('aria-label', label);
+        button.title = label;
+        const icon = desktop
+            ? (button.hasAttribute('data-sidebar-edge') ? (rail ? 'chevron-right' : 'chevron-left') : (rail ? 'panel-left-open' : 'panel-left-close'))
+            : (mobileOpen ? 'x' : 'menu');
+        button.innerHTML = `<i data-lucide="${icon}" class="icon" aria-hidden="true"></i>`;
     }
+    syncDashboardGroup();
+    renderIcons();
 }
 
-function setMobileSidebar(open) {
+function setDesktopSidebarCollapsed(collapsed) {
+    closeDashboardFlyout(true);
+    document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
+    try { localStorage.setItem('nibung.sidebar', collapsed ? 'collapsed' : 'expanded'); } catch {}
+    syncSidebar();
+}
+
+function toggleMobileSidebar(open) {
+    closeDashboardFlyout();
     document.body.classList.toggle('sidebar-open', open);
     syncSidebar();
-    if (open) sidebar.querySelector('a, button')?.focus(); else openButton?.focus();
+    if (open) sidebarFocusableElements()[0]?.focus(); else sidebarFocusReturn()?.focus();
 }
 
-openButton?.addEventListener('click', () => setMobileSidebar(true));
-document.querySelectorAll('[data-sidebar-close]').forEach((element) => element.addEventListener('click', () => setMobileSidebar(false)));
-collapseButton?.addEventListener('click', () => {
-    const collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
-    try { localStorage.setItem('apbdes.sidebar', collapsed ? 'collapsed' : 'expanded'); } catch {}
+function focusSidebarSearch() {
+    if (!sidebarSearch || document.querySelector('dialog[open]')) return;
+    if (desktopSidebar.matches) setDesktopSidebarCollapsed(false);
+    else toggleMobileSidebar(true);
+    sidebarSearch.focus();
+    sidebarSearch.select();
+}
+
+sidebarToggles.forEach((button) => button.addEventListener('click', () => {
+    if (desktopSidebar.matches) setDesktopSidebarCollapsed(!sidebarIsRail());
+    else toggleMobileSidebar(!document.body.classList.contains('sidebar-open'));
+}));
+document.querySelectorAll('[data-sidebar-close]').forEach((element) => element.addEventListener('click', () => toggleMobileSidebar(false)));
+document.querySelector('[data-sidebar-search-open]')?.addEventListener('click', focusSidebarSearch);
+navGroupToggle?.addEventListener('click', () => {
+    if (sidebarIsRail()) {
+        if (flyoutIsOpen()) closeDashboardFlyout(true); else openDashboardFlyout();
+    } else {
+        dashboardGroupExpanded = !dashboardGroupExpanded;
+        syncDashboardGroup();
+    }
+});
+navGroupToggle?.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (sidebarIsRail()) openDashboardFlyout();
+        else { dashboardGroupExpanded = true; syncDashboardGroup(); dashboardSubmenu?.querySelector('a')?.focus(); }
+    }
+    if (event.key === 'ArrowLeft' && !sidebarIsRail()) {
+        event.preventDefault();
+        dashboardGroupExpanded = false;
+        syncDashboardGroup();
+    }
+});
+dashboardFlyout?.addEventListener('toggle', syncDashboardGroup);
+dashboardFlyout?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => closeDashboardFlyout()));
+document.addEventListener('keydown', (event) => {
+    const typing = event.target.closest?.('input, textarea, select, [contenteditable]');
+    const shortcut = ((event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === 'k') || (event.key === '/' && !typing);
+    if (shortcut && !event.isComposing && !document.querySelector('dialog[open]') && sidebarSearch) {
+        event.preventDefault();
+        focusSidebarSearch();
+        return;
+    }
+    if (event.key === 'Escape' && flyoutIsOpen()) {
+        event.preventDefault();
+        closeDashboardFlyout(true);
+        return;
+    }
+    if (desktopSidebar.matches || !document.body.classList.contains('sidebar-open')) return;
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        toggleMobileSidebar(false);
+    }
+    if (event.key === 'Tab') {
+        const focusable = sidebarFocusableElements();
+        const first = focusable[0], last = focusable.at(-1);
+        if (!first) return;
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+});
+desktopSidebar.addEventListener('change', () => {
+    closeDashboardFlyout(true);
+    document.body.classList.remove('sidebar-open');
     syncSidebar();
 });
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) setMobileSidebar(false);
+window.addEventListener('resize', () => {
+    if (flyoutIsOpen()) positionDashboardFlyout();
 });
-desktop.addEventListener('change', () => { document.body.classList.remove('sidebar-open'); syncSidebar(); });
+sidebar?.addEventListener('scroll', () => closeDashboardFlyout(true), { passive: true });
+window.addEventListener('pagehide', () => closeDashboardFlyout());
 syncSidebar();
 
 /* ---------- Pesan sukses ---------- */

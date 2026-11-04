@@ -171,4 +171,44 @@ class DashboardControllerTest extends TestCase
         $response->assertOk()->assertSeeText('Sisa anggaran')->assertSeeText('Rp0,00')->assertSeeText('Penyerapan belum dapat dihitung')->assertDontSeeText('0,0% penyerapan');
         $this->assertNull($response->viewData('payload')['summary']['absorption']);
     }
+
+    public function test_search_requires_every_word_but_allows_them_in_different_fields(): void
+    {
+        BudgetLine::factory()->create(['type' => 'expense', 'category' => 'Pembangunan Desa', 'description' => 'Peningkatan jalan lingkungan']);
+        BudgetLine::factory()->create(['type' => 'expense', 'category' => 'Pembinaan Kemasyarakatan', 'description' => 'Kegiatan kepemudaan']);
+
+        $response = $this->get(route('budgets.index', ['q' => 'jalan desa']));
+
+        $rows = $response->viewData('payload')['rows'];
+        $this->assertSame(['Peningkatan jalan lingkungan'], array_column($rows, 'description'));
+    }
+
+    public function test_short_search_words_only_match_the_start_of_a_word(): void
+    {
+        BudgetLine::factory()->create(['description' => 'Pembangunan jembatan']);
+        BudgetLine::factory()->create(['description' => 'Anggaran posyandu']);
+
+        $response = $this->get(route('budgets.index', ['q' => 'an']));
+
+        $this->assertSame(['Anggaran posyandu'], array_column($response->viewData('payload')['rows'], 'description'));
+    }
+
+    public function test_search_results_rank_description_matches_above_source_only_matches(): void
+    {
+        BudgetLine::factory()->create(['description' => 'Belanja alat tulis', 'source' => 'Dokumen posyandu tahunan', 'amount' => '9000000.00']);
+        BudgetLine::factory()->create(['description' => 'Pembinaan posyandu balita', 'amount' => '100.00']);
+
+        $response = $this->get(route('budgets.index', ['q' => 'posyandu']));
+
+        $this->assertSame(['Pembinaan posyandu balita', 'Belanja alat tulis'], array_column($response->viewData('payload')['rows'], 'description'));
+    }
+
+    public function test_search_highlights_matches_without_unescaping_the_text(): void
+    {
+        BudgetLine::factory()->create(['description' => 'Posyandu <b>melati</b>']);
+
+        $response = $this->get(route('budgets.index', ['q' => 'posyandu']));
+
+        $response->assertOk()->assertSee('<mark>Posyandu</mark> &lt;b&gt;melati&lt;/b&gt;', false);
+    }
 }

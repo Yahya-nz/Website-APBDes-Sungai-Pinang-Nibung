@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Sumber data')
+@section('title', 'Kualitas data')
 @section('content')
 @php
     $summary = $payload['summary'];

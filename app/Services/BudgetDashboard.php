@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ActivityLog;
 use App\Models\BudgetLine;
 use App\Models\Dataset;
+use App\Support\BudgetSearch;
 use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -31,6 +32,7 @@ class BudgetDashboard
         $canRealize = $expense->isNotEmpty() && $expense->every(fn (BudgetLine $line) => $line->verification_status === 'verified' && $line->realization !== null && ! $line->is_demo);
         $realization = $canRealize ? Money::sum($expense->pluck('realization')) : null;
         $filters = ['q' => mb_substr((string) $request->input('q', ''), 0, 255), 'type' => (string) $request->input('type', ''), 'category' => (string) $request->input('category', ''), 'status' => (string) $request->input('status', '')];
+        $search = new BudgetSearch($filters['q']);
         $rows = $all->filter(function (BudgetLine $line) use ($filters): bool {
             if ($filters['type'] !== '' && $line->type !== $filters['type']) {
                 return false;
@@ -38,19 +40,23 @@ class BudgetDashboard
             if ($filters['category'] !== '' && $line->category !== $filters['category']) {
                 return false;
             }
-            if ($filters['status'] !== '' && $line->verification_status !== $filters['status']) {
-                return false;
-            }
 
-            return $filters['q'] === '' || str_contains(mb_strtolower($line->description.' '.$line->category.' '.$line->source), mb_strtolower($filters['q']));
+            return $filters['status'] === '' || $line->verification_status === $filters['status'];
         });
+        if (! $search->isEmpty()) {
+            $rows = $rows
+                ->map(fn (BudgetLine $line): array => ['line' => $line, 'score' => $search->score(['description' => $line->description, 'category' => $line->category, 'source' => $line->source])])
+                ->filter(fn (array $match): bool => $match['score'] !== null)
+                ->sortBy([['score', 'desc'], fn (array $a, array $b): int => $b['line']->amount <=> $a['line']->amount])
+                ->pluck('line');
+        }
 
         return ['year' => $year, 'years' => $years, 'is_demo' => $all->contains('is_demo', true), 'source' => $all->contains('is_demo', true) ? 'Dataset demonstrasi — bukan data APBDes resmi' : 'Dataset APBDes yang dikelola administrator',
             'last_updated' => $all->max('updated_at')?->toIso8601String(),
             'summary' => ['income' => $incomeTotal, 'expense' => $expenseTotal, 'balance' => ($incomeTotal * 100 - $expenseTotal * 100) / 100, 'realization' => $realization, 'absorption' => $canRealize && $expenseTotal > 0 ? round($realization / $expenseTotal * 100, 2) : null, 'remaining' => $canRealize ? ($expenseTotal * 100 - $realization * 100) / 100 : null, 'income_count' => $income->count(), 'expense_count' => $expense->count(), 'verified_count' => $all->where('verification_status', 'verified')->count(), 'unverified_count' => $all->where('verification_status', 'unverified')->count(), 'unavailable_count' => $all->where('verification_status', 'unavailable')->count(), 'total_count' => $all->count()],
             'income' => $this->composition($income, $incomeTotal), 'expense' => $this->composition($expense, $expenseTotal),
             'rows' => $rows->map(fn (BudgetLine $line) => $this->row($line))->values()->all(),
-            'filters' => $filters, 'categories' => $all->pluck('category')->unique()->values()->all(),
+            'filters' => $filters, 'search' => $search, 'categories' => $all->pluck('category')->unique()->values()->all(),
             'activities' => ActivityLog::with('user')->where(fn ($q) => $q->where('year', $year)->orWhereNull('year'))->latest('id')->limit(8)->get()->map(fn (ActivityLog $log) => ['action' => $log->action, 'description' => $log->description, 'user' => $log->user?->name ?? 'Sistem', 'created_at' => $log->created_at->toIso8601String()])->all(),
             'datasets' => Dataset::withCount('budgetLines')->with('budgetLines:id,dataset_id,verification_status')->where('year', $year)->latest('id')->get()->map(fn (Dataset $dataset) => ['name' => $dataset->name, 'source' => $dataset->source, 'year' => $dataset->year, 'source_date' => $dataset->source_date?->toDateString(), 'created_at' => $dataset->created_at->toIso8601String(), 'status' => $dataset->budget_lines_count > 0 && $dataset->budgetLines->every(fn ($line) => $line->verification_status === 'verified') ? 'verified' : 'unverified', 'row_count' => $dataset->budget_lines_count, 'is_demo' => $dataset->is_demo])->all(),
         ];

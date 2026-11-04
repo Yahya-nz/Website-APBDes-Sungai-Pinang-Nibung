@@ -12,8 +12,11 @@ ditugaskan bisa masuk untuk menambah, mengubah, dan mengimpor data.
 
 - Ringkasan per tahun: perbandingan pendapatan dan belanja (surplus/defisit),
   sumber pendapatan dalam diagram, dan belanja per bidang yang bisa diklik.
-- Rincian anggaran dengan tab Pendapatan/Belanja, pencarian, filter bidang dan
-  status, serta unduh CSV sesuai filter yang dipakai.
+- Rincian anggaran dengan tab Pendapatan/Belanja, filter bidang dan status,
+  serta unduh CSV sesuai filter yang dipakai.
+- Pencarian dari menu samping (`Ctrl K` / `⌘ K` atau `/`). Semua kata harus
+  ditemukan di uraian, bidang, atau sumber; hasil diurutkan dari yang paling
+  cocok dan kata kuncinya ditandai.
 - Halaman sumber data: daftar dataset dan status pemeriksaan tiap baris
   (terverifikasi, belum diverifikasi, belum tersedia).
 - Realisasi, penyerapan, dan sisa anggaran hanya muncul kalau semua belanja
@@ -23,7 +26,8 @@ ditugaskan bisa masuk untuk menambah, mengubah, dan mengimpor data.
   template, riwayat aktivitas, dan riwayat dataset. Impor dibatalkan seluruhnya
   kalau ada satu baris yang salah.
 - Data contoh selalu diberi label supaya tidak tertukar dengan data resmi.
-- Tampilan menyesuaikan ponsel: menu jadi laci samping dan tabel jadi kartu.
+- Menu samping bisa diringkas menjadi ikon saja. Di ponsel menu jadi laci
+  samping dan tabel jadi kartu.
 
 | Peran | Bisa apa |
 | --- | --- |
@@ -40,7 +44,7 @@ ditugaskan bisa masuk untuk menambah, mengubah, dan mengimpor data.
   jadi tidak butuh internet)
 
 Struktur singkat: `app/Services` berisi perhitungan ringkasan dan impor,
-`resources/views` tampilan Blade, `resources/css/app.css` dan
+`app/Support/BudgetSearch.php` logika pencarian, `resources/views` tampilan Blade, `resources/css/app.css` dan
 `resources/js/app.js` gaya serta interaksi, `tests/` pengujian.
 
 ## Menjalankan di komputer sendiri
@@ -99,7 +103,7 @@ terhubung ke Siskeudes dan bukan pengganti Peraturan Desa tentang APBDes.
 ![Tentang portal](docs/screenshots/05-tentang-portal.jpg)
 ![Tahun tanpa data](docs/screenshots/06-tahun-tanpa-data.jpg)
 ![Menu pengunjung](docs/screenshots/07-menu-pengunjung.jpg)
-![Menu diciutkan](docs/screenshots/08-menu-diciutkan.jpg)
+![Menu diringkas](docs/screenshots/08-menu-diringkas.jpg)
 ![Masuk pengelola](docs/screenshots/09-masuk-pengelola.jpg)
 ![Kelola data](docs/screenshots/10-kelola-data.jpg)
 ![Formulir tambah baris](docs/screenshots/11-formulir-tambah-baris.jpg)
@@ -109,5 +113,6 @@ terhubung ke Siskeudes dan bukan pengganti Peraturan Desa tentang APBDes.
 ![Ringkasan di ponsel](docs/screenshots/15-ponsel-ringkasan.jpg)
 ![Menu di ponsel](docs/screenshots/16-ponsel-menu.jpg)
 ![Rincian di ponsel](docs/screenshots/17-ponsel-rincian.jpg)
+![Hasil pencarian](docs/screenshots/18-hasil-pencarian.jpg)
 
 </details>
