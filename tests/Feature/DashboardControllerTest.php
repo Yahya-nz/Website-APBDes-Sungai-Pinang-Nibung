@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\BudgetLine;
+use App\Models\Realization;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -49,45 +50,47 @@ class DashboardControllerTest extends TestCase
         $this->assertSame(2500.00, $payload['summary']['expense']);
     }
 
-    public function test_missing_or_unverified_realization_never_becomes_zero_or_a_percentage(): void
+    public function test_realization_is_unavailable_until_spending_is_recorded(): void
     {
-        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00', 'realization' => '500.00', 'verification_status' => 'verified']);
-        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00', 'realization' => '600.00', 'verification_status' => 'unverified']);
+        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00', 'verification_status' => 'verified']);
 
         $response = $this->get(route('dashboard', ['year' => 2026]));
 
-        $response->assertOk();
+        $response->assertOk()->assertSeeText('Belum ada pengeluaran yang dicatat');
         $summary = $response->viewData('payload')['summary'];
         $this->assertNull($summary['realization']);
         $this->assertNull($summary['absorption']);
         $this->assertNull($summary['remaining']);
     }
 
-    public function test_fully_verified_official_realization_produces_consistent_indicators(): void
+    public function test_recorded_spending_produces_consistent_indicators(): void
     {
-        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00', 'realization' => '500.00', 'verification_status' => 'verified']);
-        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00', 'realization' => '0.00', 'verification_status' => 'verified']);
+        $first = BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00']);
+        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00']);
+        Realization::factory()->create(['budget_line_id' => $first->id, 'amount' => '200.00']);
+        Realization::factory()->create(['budget_line_id' => $first->id, 'amount' => '300.00']);
 
         $response = $this->get(route('dashboard', ['year' => 2026]));
 
         $response->assertOk();
-        $summary = $response->viewData('payload')['summary'];
-        $this->assertSame(500.00, $summary['realization']);
-        $this->assertSame(25.00, $summary['absorption']);
-        $this->assertSame(1500.00, $summary['remaining']);
+        $payload = $response->viewData('payload');
+        $this->assertSame(500.00, $payload['summary']['realization']);
+        $this->assertSame(25.00, $payload['summary']['absorption']);
+        $this->assertSame(1500.00, $payload['summary']['remaining']);
+        $this->assertSame(500.00, $payload['rows'][0]['realization']);
+        $this->assertSame(50.0, $payload['rows'][0]['realization_percent']);
         $response->assertSeeText('Sisa anggaran')->assertSeeText('Rp1.500,00');
     }
 
-    public function test_demo_realization_is_labelled_and_never_treated_as_official(): void
+    public function test_demo_realization_is_labelled_as_example_data(): void
     {
-        BudgetLine::factory()->create(['type' => 'expense', 'realization' => '100.00', 'verification_status' => 'verified', 'is_demo' => true]);
+        $line = BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00']);
+        Realization::factory()->demo()->create(['budget_line_id' => $line->id, 'amount' => '100.00']);
 
         $response = $this->get(route('dashboard'));
 
-        $response->assertOk();
-        $payload = $response->viewData('payload');
-        $this->assertTrue($payload['is_demo']);
-        $this->assertNull($payload['summary']['realization']);
+        $response->assertOk()->assertSeeText('Transaksi realisasi masih data contoh');
+        $this->assertTrue($response->viewData('payload')['realization_is_demo']);
     }
 
     public function test_budget_descriptions_are_escaped_in_public_html(): void
@@ -162,9 +165,10 @@ class DashboardControllerTest extends TestCase
         }
     }
 
-    public function test_verified_zero_expense_preserves_zero_remaining_without_inventing_a_percentage(): void
+    public function test_zero_budget_with_spending_keeps_zero_remaining_without_inventing_a_percentage(): void
     {
-        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '0.00', 'realization' => '0.00', 'verification_status' => 'verified']);
+        $line = BudgetLine::factory()->create(['type' => 'expense', 'amount' => '0.00']);
+        Realization::factory()->create(['budget_line_id' => $line->id, 'amount' => '0.00']);
 
         $response = $this->get(route('dashboard'));
 

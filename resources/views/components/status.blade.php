@@ -1,5 +1,6 @@
 @props(['status' => 'unverified'])
 @php
-    $labels = ['verified' => 'Terverifikasi', 'unverified' => 'Belum diverifikasi', 'unavailable' => 'Belum tersedia'];
+    $labels = ['verified' => ['Terverifikasi', 'badge-green'], 'unverified' => ['Belum diverifikasi', 'badge-amber'], 'unavailable' => ['Belum tersedia', 'badge-gray']];
+    [$label, $class] = $labels[$status] ?? $labels['unverified'];
 @endphp
-<span {{ $attributes->merge(['class' => 'status status-'.$status]) }}><span class="status-dot"></span>{{ $labels[$status] ?? 'Belum diverifikasi' }}</span>
+<span {{ $attributes->merge(['class' => 'badge status '.$class]) }}>{{ $label }}</span>

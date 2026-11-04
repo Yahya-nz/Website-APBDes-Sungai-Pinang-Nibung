@@ -1,88 +1,168 @@
+@php
+    $selectedYear = $payload['year'] ?? 2026;
+    $years = $payload['years'] ?? null;
+    $isBudgetPage = request()->routeIs('budgets.*');
+    $budgetType = in_array(request('type'), ['income', 'expense'], true) ? request('type') : null;
+    $apbdesLinks = [
+        ['label' => 'Pendapatan', 'href' => route('budgets.index', ['type' => 'income', 'year' => $selectedYear]), 'active' => $isBudgetPage && $budgetType === 'income'],
+        ['label' => 'Belanja', 'href' => route('budgets.index', ['type' => 'expense', 'year' => $selectedYear]), 'active' => $isBudgetPage && $budgetType === 'expense'],
+        ['label' => 'Pembiayaan', 'href' => route('financing', ['year' => $selectedYear]), 'active' => request()->routeIs('financing')],
+        ['label' => 'Rincian Kegiatan', 'href' => route('budgets.index', ['year' => $selectedYear]), 'active' => $isBudgetPage && ! $budgetType],
+    ];
+    $apbdesActive = collect($apbdesLinks)->contains('active', true);
+    $mainLinks = [
+        ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'dashboard'],
+        ['label' => 'Profil Desa', 'icon' => 'landmark', 'route' => 'profile'],
+    ];
+    $monitorLinks = [
+        ['label' => 'Realisasi Anggaran', 'icon' => 'chart-no-axes-column-increasing', 'route' => 'realizations.index'],
+        ['label' => 'Grafik & Analisis', 'icon' => 'chart-pie', 'route' => 'analytics'],
+        ['label' => 'Laporan', 'icon' => 'file-text', 'route' => 'reports.index'],
+    ];
+    $serviceLinks = [
+        ['label' => 'Pengaduan Warga', 'icon' => 'message-square-text', 'route' => 'complaints.create', 'active' => request()->routeIs('complaints.*')],
+        ['label' => 'Status Verifikasi', 'icon' => 'shield-check', 'route' => 'quality'],
+        ['label' => 'Tentang Portal', 'icon' => 'info', 'route' => 'about'],
+    ];
+    $newComplaints = auth()->check() ? \App\Models\Complaint::where('status', 'new')->count() : 0;
+    $notifications = $notificationFeed['items'] ?? [];
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#163d32">
-    <meta name="description" content="Portal transparansi anggaran desa. Telusuri pendapatan, alokasi belanja, dan sumber data APBDes dengan lebih mudah.">
-    <title>@yield('title', 'Ringkasan') · APBDes Sungai Pinang Nibung</title>
+    <meta name="theme-color" content="#0f2342">
+    <meta name="description" content="Dashboard Monitoring APBDes Desa Sungai Pinang Nibung: pendapatan, belanja, realisasi anggaran, laporan, dan pengaduan warga.">
+    <title>@yield('title', 'Dashboard') · APBDes Sungai Pinang Nibung</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <script>try { if (localStorage.getItem('nibung.sidebar') === 'collapsed') document.documentElement.classList.add('sidebar-collapsed'); } catch {}</script>
+    <script>try { if (localStorage.getItem('apbdes.sidebar') === 'collapsed') document.documentElement.classList.add('sidebar-collapsed'); } catch {}</script>
     <script>if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.classList.add('js-reveal'); setTimeout(() => document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible')), 3000); }</script>
-    @vite(['resources/css/app.css', 'resources/css/secondary.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
-    <a class="skip-link" href="#main">Langsung ke konten</a>
+    <a class="skip-link" href="#main">Langsung ke isi halaman</a>
     <div class="sidebar-overlay" data-sidebar-close></div>
+
     <aside class="sidebar" id="sidebar" aria-label="Navigasi utama">
-        <button class="sidebar-edge-toggle" type="button" data-sidebar-toggle data-sidebar-edge aria-controls="sidebar" aria-expanded="true" aria-label="Ringkas sidebar"><x-icon name="chevron-left" /></button>
-        <div class="sidebar-content">
-            <button class="icon-button sidebar-close" type="button" data-sidebar-dismiss aria-label="Tutup menu"><x-icon name="x" /></button>
-            <a href="{{ route('dashboard') }}" class="brand" aria-label="Nibung, beranda" title="APBDes Sungai Pinang Nibung">
-                <span class="sidebar-symbol"><x-icon name="landmark" /></span>
-                <span class="brand-copy">APBDes<small>Sungai Pinang Nibung</small></span>
-            </a>
-            <form class="sidebar-search" action="{{ route('budgets.index') }}" method="GET" role="search">
-                <input type="hidden" name="year" value="{{ $payload['year'] ?? 2026 }}">
-                <x-icon name="search" />
-                <label class="sr-only" for="sidebar-search">Cari anggaran</label>
-                <input id="sidebar-search" name="q" type="search" placeholder="Cari anggaran" value="{{ request()->routeIs('budgets.*') ? request('q') : '' }}" autocomplete="off">
-                <kbd aria-hidden="true" data-shortcut-hint>⌘ K</kbd>
-            </form>
-            <button type="button" class="sidebar-search-compact" data-sidebar-search-open aria-label="Buka pencarian anggaran" title="Cari anggaran"><x-icon name="search" /></button>
-            <span class="sidebar-section-label">Menu utama</span>
-            <nav class="sidebar-navigation" aria-label="Informasi anggaran">
-                <div class="sidebar-dashboard-group">
-                    <button type="button" class="nav-item nav-group-toggle {{ request()->routeIs('dashboard') || (request()->routeIs('budgets.*') && request('type')) ? 'active' : '' }}" data-nav-group-toggle aria-controls="dashboard-submenu" aria-expanded="true" title="Dashboard" aria-label="Dashboard">
-                        <x-icon name="layout-dashboard" /><span class="nav-item-label">Dashboard</span><x-icon name="chevron-down" class="icon nav-group-chevron" />
-                    </button>
-                    <div class="sidebar-submenu" id="dashboard-submenu">
-                        <a class="sidebar-subitem {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard', ['year' => $payload['year'] ?? 2026]) }}" @if(request()->routeIs('dashboard')) aria-current="page" @endif>Ringkasan</a>
-                        <a class="sidebar-subitem {{ request()->routeIs('budgets.*') && request('type') === 'income' ? 'active' : '' }}" href="{{ route('budgets.index', ['type' => 'income', 'year' => $payload['year'] ?? 2026]) }}" @if(request()->routeIs('budgets.*') && request('type') === 'income') aria-current="page" @endif>Pendapatan</a>
-                        <a class="sidebar-subitem {{ request()->routeIs('budgets.*') && request('type') === 'expense' ? 'active' : '' }}" href="{{ route('budgets.index', ['type' => 'expense', 'year' => $payload['year'] ?? 2026]) }}" @if(request()->routeIs('budgets.*') && request('type') === 'expense') aria-current="page" @endif>Belanja</a>
-                    </div>
-                </div>
-                <a class="nav-item {{ request()->routeIs('budgets.*') && !request('type') ? 'active' : '' }}" href="{{ route('budgets.index', ['year' => $payload['year'] ?? 2026]) }}" title="Rincian anggaran" aria-label="Rincian anggaran" @if(request()->routeIs('budgets.*') && !request('type')) aria-current="page" @endif><x-icon name="files" /><span class="nav-item-label">Rincian anggaran</span></a>
-                <a class="nav-item {{ request()->routeIs('quality') ? 'active' : '' }}" href="{{ route('quality', ['year' => $payload['year'] ?? 2026]) }}" title="Kualitas data" aria-label="Kualitas data" @if(request()->routeIs('quality')) aria-current="page" @endif><x-icon name="shield-check" /><span class="nav-item-label">Kualitas data</span></a>
-                <a class="nav-item {{ request()->routeIs('admin.*', 'login') ? 'active' : '' }}" href="{{ route('admin.index', ['year' => $payload['year'] ?? 2026]) }}" title="Kelola data" aria-label="Kelola data" @if(request()->routeIs('admin.*', 'login')) aria-current="page" @endif><x-icon name="sliders-horizontal" /><span class="nav-item-label">Kelola data</span></a>
-            </nav>
-            <div class="sidebar-footer">
-                <a class="nav-item {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}" title="Tentang portal" aria-label="Tentang portal" @if(request()->routeIs('about')) aria-current="page" @endif><x-icon name="info" /><span class="nav-item-label">Tentang portal</span></a>
-                <div class="sidebar-caption"><span>Kabupaten Ogan Ilir</span><span>Tahun anggaran {{ $payload['year'] ?? 2026 }}</span></div>
+        <div class="sidebar-head">
+            <a href="{{ route('dashboard') }}" class="emblem" title="Dashboard"><x-icon name="landmark" /></a>
+            <a href="{{ route('dashboard') }}" class="brand-text"><strong>Desa Sungai Pinang Nibung</strong><span>Kec. Sungai Pinang, Kab. Ogan Ilir</span></a>
+            <button class="icon-btn sidebar-close" type="button" data-sidebar-close aria-label="Tutup menu"><x-icon name="x" /></button>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Menu">
+            <span class="nav-label">Menu utama</span>
+            @foreach($mainLinks as $link)
+                @php $active = request()->routeIs($link['route']); @endphp
+                <a class="nav-link {{ $active ? 'is-active' : '' }}" href="{{ route($link['route'], ['year' => $selectedYear]) }}" title="{{ $link['label'] }}" @if($active) aria-current="page" @endif><x-icon :name="$link['icon']" /><span class="nav-text">{{ $link['label'] }}</span></a>
+            @endforeach
+            <button type="button" class="nav-link nav-group {{ $apbdesActive ? 'is-active' : '' }}" data-nav-group aria-expanded="{{ $apbdesActive || ! request()->routeIs('dashboard') ? 'true' : 'false' }}" aria-controls="apbdes-menu" title="APBDes {{ $selectedYear }}">
+                <x-icon name="wallet-cards" /><span class="nav-text">APBDes {{ $selectedYear }}</span><x-icon name="chevron-down" class="icon nav-chevron" />
+            </button>
+            <div class="subnav" id="apbdes-menu" @if(! $apbdesActive && request()->routeIs('dashboard')) hidden @endif>
+                @foreach($apbdesLinks as $link)
+                    <a href="{{ $link['href'] }}" class="{{ $link['active'] ? 'is-active' : '' }}" @if($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
+                @endforeach
             </div>
+            @foreach($monitorLinks as $link)
+                @php $active = request()->routeIs($link['route']); @endphp
+                <a class="nav-link {{ $active ? 'is-active' : '' }}" href="{{ route($link['route'], ['year' => $selectedYear]) }}" title="{{ $link['label'] }}" @if($active) aria-current="page" @endif><x-icon :name="$link['icon']" /><span class="nav-text">{{ $link['label'] }}</span></a>
+            @endforeach
+
+            <span class="nav-label">Layanan warga</span>
+            @foreach($serviceLinks as $link)
+                @php $active = $link['active'] ?? request()->routeIs($link['route']); @endphp
+                <a class="nav-link {{ $active ? 'is-active' : '' }}" href="{{ route($link['route']) }}" title="{{ $link['label'] }}" @if($active) aria-current="page" @endif><x-icon :name="$link['icon']" /><span class="nav-text">{{ $link['label'] }}</span></a>
+            @endforeach
+
+            <span class="nav-label">Perangkat desa</span>
+            @auth
+                <a class="nav-link {{ request()->routeIs('admin.index') ? 'is-active' : '' }}" href="{{ route('admin.index', ['year' => $selectedYear]) }}" title="Kelola Data APBDes"><x-icon name="database" /><span class="nav-text">Kelola Data APBDes</span></a>
+                <a class="nav-link {{ request()->routeIs('admin.realizations.*') ? 'is-active' : '' }}" href="{{ route('admin.realizations.index', ['year' => $selectedYear]) }}" title="Catat Realisasi"><x-icon name="receipt-text" /><span class="nav-text">Catat Realisasi</span></a>
+                <a class="nav-link {{ request()->routeIs('admin.complaints.*') ? 'is-active' : '' }}" href="{{ route('admin.complaints.index') }}" title="Pengaduan Masuk"><x-icon name="inbox" /><span class="nav-text">Pengaduan Masuk</span>@if($newComplaints)<span class="nav-badge">{{ $newComplaints }}</span>@endif</a>
+                <a class="nav-link {{ request()->routeIs('admin.settings') ? 'is-active' : '' }}" href="{{ route('admin.settings') }}" title="Pengaturan"><x-icon name="settings" /><span class="nav-text">Pengaturan</span></a>
+            @else
+                <a class="nav-link {{ request()->routeIs('admin.*') ? 'is-active' : '' }}" href="{{ route('admin.index') }}" title="Kelola Data"><x-icon name="lock-keyhole" /><span class="nav-text">Kelola Data</span></a>
+            @endauth
+        </nav>
+
+        <div class="sidebar-foot">
+            <div class="sidebar-card"><strong>Tahun anggaran {{ $selectedYear }}</strong>Sumber: baliho APBDes desa</div>
+            <button class="collapse-btn" type="button" data-sidebar-collapse aria-controls="sidebar" aria-expanded="true" title="Ringkas menu"><x-icon name="chevrons-left" /><span class="nav-text">Ringkas menu</span></button>
         </div>
     </aside>
-    <div class="sidebar-flyout" id="dashboard-flyout" popover aria-label="Menu Dashboard">
-        <a class="flyout-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard', ['year' => $payload['year'] ?? 2026]) }}">Ringkasan</a>
-        <a class="flyout-link {{ request()->routeIs('budgets.*') && request('type') === 'income' ? 'active' : '' }}" href="{{ route('budgets.index', ['type' => 'income', 'year' => $payload['year'] ?? 2026]) }}">Pendapatan</a>
-        <a class="flyout-link {{ request()->routeIs('budgets.*') && request('type') === 'expense' ? 'active' : '' }}" href="{{ route('budgets.index', ['type' => 'expense', 'year' => $payload['year'] ?? 2026]) }}">Belanja</a>
+    <div class="sidebar-flyout" id="apbdes-flyout" popover aria-label="Menu APBDes">
+        @foreach($apbdesLinks as $link)<a href="{{ $link['href'] }}" class="{{ $link['active'] ? 'is-active' : '' }}">{{ $link['label'] }}</a>@endforeach
     </div>
-    <div class="app-main">
+
+    <div class="app">
         <header class="topbar">
-            <div class="topbar-left"><button class="icon-button sidebar-toggle" type="button" data-sidebar-toggle aria-controls="sidebar" aria-expanded="true" aria-label="Sembunyikan sidebar"><x-icon name="panel-left-close" /></button><span class="breadcrumb">Portal transparansi <span>/</span> <strong>@yield('title', 'Ringkasan')</strong></span></div>
-            <div class="topbar-right">
-                <button class="profile-trigger" type="button" popovertarget="profile-menu" aria-controls="profile-menu" aria-expanded="false" aria-label="Buka menu profil" data-profile-trigger>
-                    <span class="profile-avatar">{{ auth()->check() ? mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) : 'P' }}</span>
-                    <span class="profile-name">{{ auth()->check() ? auth()->user()->name : 'Pengunjung' }}</span>
+            <button class="icon-btn menu-btn" type="button" data-sidebar-open aria-controls="sidebar" aria-expanded="false" aria-label="Buka menu"><x-icon name="menu" /></button>
+            <div class="topbar-title"><strong>@yield('heading', 'Dashboard Monitoring APBDes')</strong><span>Desa Sungai Pinang Nibung, Kecamatan Sungai Pinang, Kabupaten Ogan Ilir</span></div>
+            <div class="topbar-actions">
+                @if($years)
+                    <form method="GET" class="year-picker">
+                        @foreach(request()->except(['year', 'page']) as $name => $value)
+                            @if(is_string($value))<input type="hidden" name="{{ $name }}" value="{{ $value }}">@endif
+                        @endforeach
+                        <label for="year-picker">Tahun anggaran</label>
+                        <select id="year-picker" name="year" data-auto-submit>@foreach($years as $year)<option value="{{ $year }}" @selected($year == $selectedYear)>{{ $year }}</option>@endforeach</select>
+                    </form>
+                @endif
+
+                <button class="bell-btn" type="button" popovertarget="bell-panel" aria-label="Notifikasi" data-bell>
+                    <x-icon name="bell" /><span class="bell-dot" data-bell-count hidden></span>
+                </button>
+                <div class="bell-panel" id="bell-panel" popover aria-label="Notifikasi" data-bell-panel data-feed-url="{{ route('notifications') }}">
+                    <div class="bell-head"><strong>Notifikasi</strong><button type="button" data-bell-read>Tandai sudah dibaca</button></div>
+                    <div class="bell-list" data-bell-list>
+                        @forelse($notifications as $item)
+                            <a class="bell-item" href="{{ $item['url'] }}" data-notification-id="{{ $item['id'] }}">
+                                <span class="bell-icon {{ $item['kind'] === 'complaint' ? 'is-complaint' : '' }}"><x-icon :name="$item['kind'] === 'complaint' ? 'message-square-text' : 'receipt-text'" /></span>
+                                <span><span class="bell-title">{{ $item['title'] }}</span><span class="bell-detail">{{ $item['detail'] }}</span><span class="bell-date">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j F Y') }}@if($item['is_demo']) · contoh @endif</span></span>
+                            </a>
+                        @empty
+                            <p class="bell-empty">Belum ada pengeluaran yang dicatat.</p>
+                        @endforelse
+                    </div>
+                    <a class="bell-foot" href="{{ route('realizations.index', ['year' => $selectedYear]) }}">Lihat semua realisasi</a>
+                </div>
+
+                <button class="profile-btn" type="button" popovertarget="profile-menu" aria-controls="profile-menu" aria-expanded="false" data-profile-trigger>
+                    <span class="avatar" aria-hidden="true">@auth{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}@else<x-icon name="user-round" />@endauth</span>
+                    <span class="profile-name"><strong>{{ auth()->check() ? auth()->user()->name : 'Pengunjung' }}</strong><span>{{ auth()->check() ? 'Perangkat desa' : 'Masyarakat' }}</span></span>
                     <x-icon name="chevron-down" />
                 </button>
-                <div class="profile-menu" id="profile-menu" popover aria-label="Menu profil">
-                    <div class="profile-menu-heading"><strong>{{ auth()->check() ? auth()->user()->name : 'Akses publik' }}</strong><span>{{ auth()->check() ? auth()->user()->email : 'Informasi anggaran desa' }}</span></div>
+                <div class="profile-menu" id="profile-menu" popover aria-label="Menu akun">
+                    <div class="profile-menu-head"><strong>{{ auth()->check() ? auth()->user()->name : 'Akses masyarakat' }}</strong><span>{{ auth()->check() ? auth()->user()->email : 'Melihat data tanpa login.' }}</span></div>
                     @auth
-                        <a class="profile-menu-item" href="{{ route('admin.index', ['year' => $payload['year'] ?? 2026]) }}"><x-icon name="sliders-horizontal" /> Kelola data</a>
-                        <form class="profile-logout" method="POST" action="{{ route('logout') }}">@csrf<button class="profile-menu-item" type="submit"><x-icon name="log-out" /> Keluar akun</button></form>
+                        <a class="menu-item" href="{{ route('admin.index', ['year' => $selectedYear]) }}"><x-icon name="database" /> Kelola data</a>
+                        <a class="menu-item" href="{{ route('admin.settings') }}"><x-icon name="settings" /> Pengaturan akun</a>
+                        <form method="POST" action="{{ route('logout') }}">@csrf<button class="menu-item" type="submit"><x-icon name="log-out" /> Keluar akun</button></form>
                     @else
-                        <a class="profile-menu-item" href="{{ route('login') }}"><x-icon name="log-in" /> Masuk pengelola</a>
+                        <a class="menu-item" href="{{ route('complaints.create') }}"><x-icon name="message-square-text" /> Kirim pengaduan</a>
+                        <a class="menu-item" href="{{ route('login') }}"><x-icon name="log-in" /> Masuk pengelola</a>
                     @endauth
                 </div>
             </div>
         </header>
+
         <main id="main" tabindex="-1">
-            @if(session('success'))<div class="flash flash-success" role="status"><x-icon name="circle-check" /><span>{{ session('success') }}</span><button class="icon-button" data-dismiss aria-label="Tutup pesan"><x-icon name="x" /></button></div>@endif
-            @if($errors->any())<div class="flash flash-error" role="alert" tabindex="-1" data-error-summary><x-icon name="circle-alert" /><div><strong>Periksa kembali isianmu.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div></div>@endif
+            @if(session('success'))
+                <div class="toast" role="status" data-toast><x-icon name="circle-check" /><span>{{ session('success') }}</span><button class="icon-btn" type="button" data-toast-close aria-label="Tutup pesan"><x-icon name="x" /></button></div>
+            @endif
+            @if($errors->any() && ! old('_budget_form'))
+                <div class="alert" role="alert" tabindex="-1" data-error-summary><x-icon name="circle-alert" /><div><strong>Ada isian yang perlu diperbaiki.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div></div>
+            @endif
+
             @yield('content')
-            <footer class="page-footer"><span><strong>Pemerintah Desa Sungai Pinang Nibung</strong> Kecamatan Sungai Pinang, Kabupaten Ogan Ilir</span><span><a href="{{ route('about') }}">Tentang portal</a> <span class="footer-dot">·</span> <a href="{{ route('export', ['year' => $payload['year'] ?? 2026]) }}">Unduh CSV {{ $payload['year'] ?? 2026 }}</a></span></footer>
+
+            <footer class="site-footer">
+                <span><strong>Pemerintah Desa Sungai Pinang Nibung</strong> · Kecamatan Sungai Pinang, Kabupaten Ogan Ilir · “Desa Membangun Indonesia”</span>
+                <nav aria-label="Tautan bawah"><a href="{{ route('reports.index') }}">Laporan</a><a href="{{ route('complaints.create') }}">Pengaduan</a><a href="{{ route('export', ['year' => $selectedYear]) }}">Unduh CSV</a><a href="{{ route('about') }}">Tentang portal</a></nav>
+            </footer>
         </main>
     </div>
     @stack('scripts')

@@ -131,13 +131,13 @@ class AdminControllerTest extends TestCase
         $this->assertDatabaseCount('datasets', 0);
     }
 
-    public function test_valid_xlsx_import_preserves_decimal_amount_and_zero_realization(): void
+    public function test_valid_xlsx_import_preserves_decimal_amount_and_activity_details(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $book = new Spreadsheet;
         $book->getActiveSheet()->fromArray([
-            ['year', 'type', 'category', 'description', 'amount', 'source', 'verification_status', 'source_date', 'realization'],
-            [2026, 'expense', 'Pembangunan', 'Imported Excel row', 12500.75, 'Workbook pengujian', 'verified', '2026-11-03', 0],
+            ['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'source', 'verification_status', 'source_date'],
+            [2026, 'expense', 'Pembangunan', 'Kesehatan', 'Imported Excel row', '12 bulan', 12500.75, 'Dana Desa', 'Workbook pengujian', 'verified', '2026-11-03'],
         ], null, 'A1', true);
         $path = tempnam(sys_get_temp_dir(), 'apbdes-test-');
         (new Xlsx($book))->save($path);
@@ -147,7 +147,7 @@ class AdminControllerTest extends TestCase
             $response = $this->actingAs($admin)->post(route('admin.import'), ['file' => $file]);
 
             $response->assertSessionHasNoErrors()->assertRedirect();
-            $this->assertDatabaseHas('budget_lines', ['description' => 'Imported Excel row', 'amount' => '12500.75', 'realization' => '0.00', 'is_demo' => false]);
+            $this->assertDatabaseHas('budget_lines', ['description' => 'Imported Excel row', 'amount' => '12500.75', 'sub_category' => 'Kesehatan', 'volume' => '12 bulan', 'funding_source' => 'Dana Desa', 'is_demo' => false]);
             $this->assertDatabaseHas('activity_logs', ['action' => 'import', 'user_id' => $admin->id]);
             $this->assertDatabaseCount('datasets', 1);
         } finally {

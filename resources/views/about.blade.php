@@ -1,19 +1,38 @@
 @extends('layouts.app')
-
-@section('title', 'Tentang portal')
-
+@section('title', 'Tentang Portal')
+@section('heading', 'Tentang Portal')
 @section('content')
-<div class="page-heading"><div><div class="page-kicker">Tentang</div><h1>Portal APBDes Sungai Pinang Nibung</h1><p>Desa Sungai Pinang Nibung, Kecamatan Sungai Pinang, Kabupaten Ogan Ilir.</p></div></div>
-
-<section class="card about-intro"><div class="card-body"><h2>Apa isi portal ini?</h2><p>Dashboard ini menyajikan informasi Anggaran Pendapatan dan Belanja Desa Sungai Pinang Nibung dalam bentuk ringkasan, grafik, dan rincian yang dapat ditelusuri. Tujuannya sederhana: membantu masyarakat melihat sumber pendapatan dan rencana peruntukan anggaran dengan lebih jelas.</p><div class="about-location"><x-icon name="map-pin" /><span>Desa Sungai Pinang Nibung · Kecamatan Sungai Pinang · Kabupaten Ogan Ilir</span></div></div></section>
-
-<div class="about-features">
-    <section class="card"><div class="card-body"><span class="metric-icon"><x-icon name="chart-no-axes-combined" /></span><h3>Ringkasan</h3><p>Ringkasan dan visualisasi memperlihatkan komposisi pendapatan serta alokasi belanja.</p><a class="text-link" href="{{ route('dashboard') }}">Buka dashboard <x-icon name="arrow-up-right" /></a></div></section>
-    <section class="card"><div class="card-body"><span class="metric-icon"><x-icon name="search" /></span><h3>Rincian anggaran</h3><p>Cari uraian, pilih kategori dan tahun, lalu unduh data untuk dipelajari lebih lanjut.</p><a class="text-link" href="{{ route('budgets.index') }}">Lihat rincian anggaran <x-icon name="arrow-up-right" /></a></div></section>
-    <section class="card"><div class="card-body"><span class="metric-icon"><x-icon name="shield-check" /></span><h3>Kualitas data</h3><p>Informasi sumber, pembaruan, dan status verifikasi memberi konteks pada setiap angka.</p><a class="text-link" href="{{ route('quality') }}">Periksa kualitas data <x-icon name="arrow-up-right" /></a></div></section>
+<div class="page-head" data-reveal>
+    <div><h1>Tentang Dashboard Monitoring APBDes</h1><p>Portal keterbukaan anggaran Desa Sungai Pinang Nibung.</p></div>
 </div>
-
-<section class="card about-reading"><div class="card-header"><div><h2>Istilah yang sering muncul</h2><p>Tiga istilah dasar untuk membaca APBDes.</p></div><x-icon name="book-open" /></div><div class="card-body glossary-grid"><article><span>01</span><h3>Pendapatan</h3><p>Rencana penerimaan desa dari berbagai sumber, seperti Dana Desa, Alokasi Dana Desa, dan pendapatan asli desa.</p></article><article><span>02</span><h3>Belanja</h3><p>Rencana penggunaan dana untuk bidang pemerintahan, pembangunan, pembinaan, pemberdayaan, dan kebutuhan desa lainnya.</p></article><article><span>03</span><h3>Realisasi</h3><p>Nilai penerimaan atau pengeluaran yang sudah terlaksana. Angka ini membutuhkan data pendukung yang berbeda dari rencana anggaran.</p></article></div></section>
-
-<section class="card quality-note"><div class="card-body"><div class="quality-note-icon"><x-icon name="sprout" /></div><div><h3>Batasan penggunaan</h3><p>Portal ini membantu penyajian informasi. Dokumen resmi pemerintah desa tetap menjadi rujukan utama. Data berlabel demo hanya digunakan untuk mencoba fitur dan tidak menggambarkan keuangan desa yang sebenarnya.</p></div></div></section>
+<section class="grid grid-7-5">
+    <article class="card" data-reveal>
+        <header class="card-head"><div><h2>Untuk apa portal ini?</h2></div></header>
+        <div class="card-body prose">
+            <p>Dashboard ini menyajikan Anggaran Pendapatan dan Belanja Desa (APBDes) Desa Sungai Pinang Nibung dalam bentuk ringkasan, grafik, dan tabel yang mudah dibaca. Angka anggaran disalin dari baliho APBDes yang dipasang desa.</p>
+            <p>Selain keterbukaan informasi, portal ini membantu perangkat desa memantau realisasi anggaran, menyusun laporan bulanan atau semester secara otomatis, dan menerima masukan warga.</p>
+        </div>
+        <div class="card-body" style="padding-top: 0">
+            <dl class="dl">
+                <dt>Pendapatan</dt><dd style="font-weight: 400">Rencana penerimaan desa: Dana Desa, Alokasi Dana Desa, bagi hasil pajak, pendapatan asli desa, dan bunga bank.</dd>
+                <dt>Belanja</dt><dd style="font-weight: 400">Rencana penggunaan dana di lima bidang: pemerintahan, pembangunan, pembinaan kemasyarakatan, pemberdayaan masyarakat, dan penanggulangan bencana.</dd>
+                <dt>Realisasi</dt><dd style="font-weight: 400">Dana yang benar-benar sudah dibelanjakan, dicatat per transaksi oleh perangkat desa.</dd>
+                <dt>Pembiayaan</dt><dd style="font-weight: 400">Penerimaan atau pengeluaran untuk menutup defisit atau memanfaatkan surplus.</dd>
+            </dl>
+        </div>
+    </article>
+    <div style="display: grid; gap: 20px; align-content: start">
+        <article class="card" data-reveal>
+            <header class="card-head"><div><h2>Hak akses</h2></div></header>
+            <div class="card-body">
+                <div class="progress-item"><div class="progress-item-head"><strong><x-icon name="users-round" class="icon" style="display: inline; vertical-align: -3px; margin-right: 6px" />Masyarakat</strong><span class="badge badge-gray">Tanpa login</span></div><p class="hint">Melihat dashboard, rincian, realisasi, grafik, mengunduh laporan, dan mengirim pengaduan.</p></div>
+                <div class="progress-item"><div class="progress-item-head"><strong><x-icon name="user-cog" class="icon" style="display: inline; vertical-align: -3px; margin-right: 6px" />Perangkat desa</strong><span class="badge badge-blue">Login</span></div><p class="hint">Mengelola data APBDes, mencatat realisasi, menanggapi pengaduan, dan mengatur akun.</p></div>
+            </div>
+        </article>
+        <article class="card" data-reveal>
+            <header class="card-head"><div><h2>Batasan</h2></div></header>
+            <div class="card-body prose"><p>Portal ini bukan pengganti dokumen resmi. Rujukan utama tetap Peraturan Desa tentang APBDes. Data berlabel “contoh” hanya untuk mencoba fitur.</p></div>
+        </article>
+    </div>
+</section>
 @endsection

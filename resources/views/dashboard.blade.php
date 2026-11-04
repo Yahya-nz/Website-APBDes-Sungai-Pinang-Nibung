@@ -1,52 +1,193 @@
 @extends('layouts.app')
-@section('title', 'Ringkasan')
+@section('title', 'Dashboard')
+@section('heading', 'Dashboard Monitoring APBDes')
 @section('content')
 @php
     $summary = $payload['summary'];
-    $income = $payload['income'];
-    $expenses = $payload['expense'];
-    $rows = array_slice($payload['rows'], 0, 5);
-    $total = $summary['total_count'];
-    $percentVerified = $total ? round($summary['verified_count'] / $total * 100) : 0;
+    $hasData = $summary['total_count'] > 0;
+    $absorption = $summary['absorption'] ?? 0;
     $updatedAt = $payload['last_updated'] ? \Carbon\Carbon::parse($payload['last_updated'])->timezone('Asia/Jakarta')->translatedFormat('j F Y') : null;
-    $incomeShort = \App\Support\Money::short($summary['income']);
-    $expenseShort = \App\Support\Money::short($summary['expense']);
-    $realizationShort = $summary['realization'] !== null ? \App\Support\Money::short($summary['realization']) : null;
+    $latestYear = collect($payload['years'])->first(fn ($year) => $year !== $payload['year']);
 @endphp
-<div class="page-heading">
-    <div><div class="page-kicker">Desa Sungai Pinang Nibung</div><h1>Ringkasan APBDes {{ $payload['year'] }}</h1><p>Rencana pendapatan dan belanja desa dalam satu halaman.@if($updatedAt) Data diperbarui {{ $updatedAt }}.@endif</p></div>
-    <div class="heading-actions"><form method="GET" class="year-form"><label for="dashboard-year" class="sr-only">Tahun anggaran</label><x-icon name="calendar-days" /><select id="dashboard-year" name="year" data-auto-submit>@foreach($payload['years'] as $year)<option value="{{ $year }}" @selected($year == $payload['year'])>TA {{ $year }}</option>@endforeach</select><noscript><button class="btn btn-secondary">Pilih</button></noscript></form><a class="btn btn-secondary" href="{{ route('export', ['year' => $payload['year']]) }}"><x-icon name="download" /> Unduh data</a></div>
-</div>
-<section class="overview-banner" aria-labelledby="banner-title">
-    <div class="banner-copy"><span class="banner-eyebrow"><span></span> Tahun anggaran {{ $payload['year'] }}</span><h2 id="banner-title">Anggaran Desa Sungai Pinang Nibung</h2><p>Lihat dari mana pendapatan desa berasal dan<br class="desktop-break"> untuk kegiatan apa saja dana direncanakan.</p><a href="{{ route('budgets.index', ['year' => $payload['year']]) }}">Lihat rincian anggaran <x-icon name="arrow-up-right" /></a></div>
-    <div class="banner-art" aria-hidden="true"><svg viewBox="0 0 440 210" fill="none"><circle cx="307" cy="91" r="58" fill="#c9eaa0" opacity=".12"/><circle cx="307" cy="91" r="42" stroke="#c9eaa0" opacity=".35"/><path d="M18 204C87 147 135 147 199 165C262 184 302 120 433 143M3 221C89 159 146 171 211 185C280 199 322 145 442 160" stroke="#97bb8e" opacity=".38"/><path d="M77 182V114L129 78L181 114V176M65 115L129 68L193 115M116 179V139H142V179M90 126H105V143H90V126ZM153 126H168V143H153V126Z" stroke="#c9eaa0" stroke-width="1.5" stroke-linejoin="round"/><path d="M210 170V108L250 79L290 108V155M200 109L250 69L300 109M237 166V130H260V161M217 114H230V129H217V114ZM272 114H283V129H272V114Z" stroke="#c9eaa0" stroke-width="1.5" stroke-linejoin="round"/><path d="M339 150V76M339 125C317 121 311 111 312 99C329 99 340 108 339 125ZM340 105C362 101 368 91 367 79C350 79 339 88 340 105ZM340 85C323 82 319 73 320 63C333 63 341 71 340 85ZM340 70C355 59 355 49 350 39C338 47 334 57 340 70Z" stroke="#c9eaa0" stroke-width="1.5"/><path d="M368 145V125M368 135C382 132 385 125 384 117C374 117 367 123 368 135Z" stroke="#c9eaa0" stroke-width="1.5"/><path d="M20 156L43 141L66 156M374 37H393M383 28V47M198 48H208M203 43V53" stroke="#c9eaa0" opacity=".5"/></svg></div>
-    @if($payload['is_demo'])<span class="banner-demo"><span></span> Data contoh</span>@endif
-</section>
-@if($payload['is_demo'])<div class="demo-notice"><x-icon name="flask-conical" /><p><strong>Data contoh untuk demonstrasi.</strong> Seluruh nominal pada dataset contoh merupakan simulasi, bukan data APBDes resmi.</p><a href="{{ route('quality', ['year' => $payload['year']]) }}">Lihat sumber <x-icon name="arrow-right" /></a></div>@endif
-<section class="metrics-grid" aria-label="Indikator utama anggaran">
-    <article class="metric-card"><div class="metric-top"><span>Total pendapatan</span><span class="metric-icon"><x-icon name="arrow-down-left" /></span></div>@if($summary['income_count'] > 0)<div class="metric-value"><span class="currency-prefix">Rp</span><span data-count="{{ $incomeShort['value'] }}">{{ $incomeShort['value'] }}</span><span class="metric-unit">{{ $incomeShort['unit'] }}</span></div>@else<div class="metric-unavailable">Belum tersedia <span>—</span></div>@endif<div class="metric-bottom"><span class="mini-dot green"></span>{{ $summary['income_count'] }} komponen pendapatan <x-icon name="arrow-up-right" /></div></article>
-    <article class="metric-card"><div class="metric-top"><span>Total belanja</span><span class="metric-icon pale"><x-icon name="arrow-up-right" /></span></div>@if($summary['expense_count'] > 0)<div class="metric-value"><span class="currency-prefix">Rp</span><span data-count="{{ $expenseShort['value'] }}">{{ $expenseShort['value'] }}</span><span class="metric-unit">{{ $expenseShort['unit'] }}</span></div>@else<div class="metric-unavailable">Belum tersedia <span>—</span></div>@endif<div class="metric-bottom"><span class="mini-dot sage"></span>{{ count($expenses) }} bidang alokasi belanja <x-icon name="arrow-up-right" /></div></article>
-    <article class="metric-card"><div class="metric-top"><span>Realisasi anggaran</span><span class="metric-icon neutral"><x-icon name="chart-no-axes-combined" /></span></div>@if($summary['realization'] !== null)<div class="metric-value"><span class="currency-prefix">Rp</span><span data-count="{{ $realizationShort['value'] }}">{{ $realizationShort['value'] }}</span><span class="metric-unit">{{ $realizationShort['unit'] }}</span></div><div class="metric-bottom">@if($summary['absorption'] !== null){{ number_format($summary['absorption'], 1, ',', '.') }}% penyerapan anggaran @else Penyerapan belum dapat dihitung @endif</div>@else<div class="metric-unavailable">Belum tersedia <span>—</span></div><div class="metric-bottom"><x-icon name="clock-3" /> Menunggu data terverifikasi</div>@endif</article>
-    <article class="metric-card"><div class="metric-top"><span>Data terverifikasi</span><span class="metric-icon neutral"><x-icon name="badge-check" /></span></div><div class="metric-value"><span data-count="{{ $summary['verified_count'] }}">{{ $summary['verified_count'] }}</span><span class="metric-denominator">/ {{ $total }}</span><span class="metric-unit">item</span></div><div class="metric-bottom"><span class="verification-track"><span style="width:{{ $percentVerified }}%"></span></span><span>{{ $percentVerified }}%</span><a href="{{ route('quality') }}" aria-label="Lihat kualitas data"><x-icon name="arrow-up-right" /></a></div></article>
-</section>
-@if($summary['remaining'] !== null)
-<div class="realization-summary"><div><x-icon name="wallet" /><span>Sisa anggaran</span><strong><x-money :value="$summary['remaining']" :decimals="2" /></strong></div><p>Selisih anggaran belanja dengan realisasi yang sudah terverifikasi.</p></div>
-@endif
-<section class="charts-grid" aria-label="Visualisasi anggaran">
-    <article class="card income-card"><div class="card-header"><div><h2>Sumber pendapatan</h2><p>Porsi setiap sumber terhadap total pendapatan.</p></div><span class="badge badge-muted">{{ count($income) }} sumber</span></div><div class="income-content"><div class="donut-container"><canvas id="income-chart" role="img" aria-label="Grafik komposisi pendapatan; rincian nominal tersedia pada daftar di samping"></canvas><div class="donut-center"><span>Total pendapatan</span><strong>@if($summary['income_count'] > 0){{ $incomeShort['value'] }}<small> {{ ['miliar' => 'M', 'juta' => 'jt'][$incomeShort['unit']] ?? '' }}</small>@else — @endif</strong><span>Rupiah</span></div></div><div class="chart-legend">@forelse($income as $item)<div class="legend-item"><span class="legend-dot" style="--dot-color:{{ $item['color'] }}"></span><div><span>{{ $item['name'] }}</span><strong><x-money :value="$item['amount']" /></strong></div><span class="legend-percent">{{ number_format($item['percentage'], 1, ',', '.') }}%</span></div>@empty<div class="empty-state">Data pendapatan belum tersedia.</div>@endforelse</div></div><div class="card-footnote"><x-icon name="info" /> Komposisi rencana pendapatan, bukan realisasi.</div></article>
-    <article class="card expense-card"><div class="card-header"><div><h2>Belanja per bidang</h2><p>Rencana belanja menurut bidang kegiatan.</p></div><a class="icon-button" href="{{ route('budgets.index', ['type' => 'expense', 'year' => $payload['year']]) }}" aria-label="Lihat semua belanja"><x-icon name="arrow-up-right" /></a></div>
-        <div class="allocation-chart" role="group" aria-label="Alokasi belanja per bidang">
-        @forelse($expenses as $index => $item)
-            <a href="{{ route('budgets.index', ['type' => 'expense', 'category' => $item['name'], 'year' => $payload['year']]) }}" class="allocation-row" style="--bar-color:{{ $item['color'] }};--bar-width:{{ $item['percentage'] }}%;--bar-delay:{{ $index * 85 }}ms" aria-label="{{ $item['name'] }}, {{ number_format($item['percentage'], 1, ',', '.') }} persen, {{ number_format($item['amount'], 0, ',', '.') }} Rupiah">
-                <div class="allocation-label"><span>{{ $item['name'] }}</span><strong><x-money :value="$item['amount']" /></strong></div>
-                <div class="allocation-track"><span class="allocation-bar"></span><span class="allocation-percent">{{ number_format($item['percentage'], 0, ',', '.') }}%</span></div>
-            </a>
-        @empty<div class="empty-state"><x-icon name="layers" /><p>Data alokasi belanja belum tersedia.</p></div>@endforelse
+
+<section class="hero" data-reveal>
+    <div class="hero-copy">
+        <span class="hero-kicker"><x-icon name="sparkles" /> Selamat datang</span>
+        <h2>Dashboard Monitoring Anggaran Desa</h2>
+        <p>Desa Sungai Pinang Nibung, Kecamatan Sungai Pinang, Kabupaten Ogan Ilir · Tahun Anggaran {{ $payload['year'] }}</p>
+        <div class="hero-meta">
+            <span><x-icon name="user-round" /> Kepala Desa: Kamaludin</span>
+            @if($payload['source'])<span><x-icon name="file-check" /> Sumber: {{ $payload['source'] }}</span>@endif
+            @if($updatedAt)<span><x-icon name="calendar-check" /> Diperbarui {{ $updatedAt }}</span>@endif
         </div>
-        <div class="card-footnote"><x-icon name="mouse-pointer-2" /> Pilih bidang untuk menelusuri rincian alokasinya.</div>
+    </div>
+    <x-village-art class="hero-art" />
+</section>
+
+@if(! $hasData)
+    <div class="notice notice-info" data-reveal><x-icon name="info" /><p>Data APBDes tahun {{ $payload['year'] }} belum dimasukkan. Total pendapatan, belanja, dan realisasi: Belum tersedia.@if($latestYear) <a href="{{ route('dashboard', ['year' => $latestYear]) }}">Lihat tahun {{ $latestYear }}</a>.@endif</p></div>
+@elseif($payload['realization_is_demo'])
+    <div class="notice notice-warn" data-reveal><x-icon name="flask-conical" /><p><strong>Angka anggaran asli dari baliho APBDes {{ $payload['year'] }}.</strong> Transaksi realisasi masih data contoh untuk mencoba fitur monitoring, bukan data resmi desa.</p></div>
+@endif
+
+<section class="grid grid-4" aria-label="Ringkasan anggaran">
+    <article class="card kpi kpi-green" data-reveal>
+        <span class="kpi-icon"><x-icon name="hand-coins" /></span>
+        <div>
+            <span class="kpi-label">Total pendapatan</span>
+            @if($summary['income_count'] > 0)
+                <p class="kpi-value"><x-money :value="$summary['income']" :decimals="2" /></p>
+                <x-progress value="100" color="green" label="Pendapatan" />
+                <p class="kpi-meta"><span>{{ count($payload['income']) }} sumber pendapatan</span><span>100%</span></p>
+            @else
+                <p class="kpi-value is-empty">Belum tersedia</p>
+            @endif
+        </div>
+    </article>
+    <article class="card kpi kpi-blue" data-reveal>
+        <span class="kpi-icon"><x-icon name="shopping-cart" /></span>
+        <div>
+            <span class="kpi-label">Total belanja</span>
+            @if($summary['expense_count'] > 0)
+                @php $ofIncome = $summary['income'] > 0 ? $summary['expense'] / $summary['income'] * 100 : 0; @endphp
+                <p class="kpi-value"><x-money :value="$summary['expense']" :decimals="2" /></p>
+                <x-progress :value="$ofIncome" color="blue" label="Belanja terhadap pendapatan" />
+                <p class="kpi-meta"><span>{{ count($payload['expense']) }} bidang, {{ $summary['expense_count'] }} kegiatan</span><span>{{ number_format($ofIncome, 0, ',', '.') }}%</span></p>
+            @else
+                <p class="kpi-value is-empty">Belum tersedia</p>
+            @endif
+        </div>
+    </article>
+    <article class="card kpi kpi-amber" data-reveal>
+        <span class="kpi-icon"><x-icon name="scale" /></span>
+        <div>
+            <span class="kpi-label">Total pembiayaan</span>
+            @if($hasData)
+                <p class="kpi-value"><x-money :value="$summary['financing']" :decimals="2" /></p>
+                <x-progress value="0" color="amber" label="Pembiayaan" />
+                <p class="kpi-meta"><span>{{ $summary['balance'] == 0 ? 'Anggaran seimbang' : ($summary['balance'] > 0 ? 'Surplus' : 'Defisit') }}</span><a class="link" href="{{ route('financing', ['year' => $payload['year']]) }}">Detail</a></p>
+            @else
+                <p class="kpi-value is-empty">Belum tersedia</p>
+            @endif
+        </div>
+    </article>
+    <article class="card kpi kpi-purple" data-reveal>
+        <span class="kpi-icon"><x-icon name="chart-pie" /></span>
+        <div>
+            <span class="kpi-label">Realisasi belanja</span>
+            @if($summary['realization'] !== null)
+                <p class="kpi-value"><x-money :value="$summary['realization']" :decimals="2" /></p>
+                <x-progress :value="$absorption" color="purple" label="Penyerapan anggaran" />
+                <p class="kpi-meta"><span>@if($summary['absorption'] !== null){{ number_format($summary['absorption'], 1, ',', '.') }}% penyerapan anggaran @else Penyerapan belum dapat dihitung @endif</span></p>
+            @else
+                <p class="kpi-value is-empty">Belum tersedia</p>
+                <p class="kpi-meta"><span>Belum ada pengeluaran yang dicatat</span></p>
+            @endif
+        </div>
     </article>
 </section>
-<section class="card budget-preview"><div class="card-header"><div><h2>Rincian kegiatan</h2><p>Baris anggaran terbaru beserta status pemeriksaannya.</p></div><a href="{{ route('budgets.index', ['year' => $payload['year']]) }}" class="btn btn-secondary btn-sm">Lihat semua <x-icon name="arrow-right" /></a></div>@include('partials.budget-table', ['budgetRows' => $rows, 'showSource' => false])<div class="table-footer"><span>Menampilkan {{ count($rows) }} dari {{ count($payload['rows']) }} rincian anggaran</span><span>TA {{ $payload['year'] }} <span class="footer-dot">·</span> Dalam Rupiah</span></div></section>
-<div class="bottom-note"><x-icon name="shield-check" /><p>Setiap rincian mencantumkan sumber dan status pemeriksaannya.</p><a href="{{ route('quality', ['year' => $payload['year']]) }}">Tentang kualitas data <x-icon name="arrow-right" /></a></div>
+
+@if($summary['remaining'] !== null)
+<section class="card" data-reveal style="margin-bottom: 20px">
+    <div class="stat-row cols-4">
+        <div class="stat"><span>Rencana belanja</span><strong><x-money :value="$summary['expense']" :decimals="2" /></strong></div>
+        <div class="stat"><span>Sudah direalisasikan</span><strong style="color: #7c3aed"><x-money :value="$summary['realization']" :decimals="2" /></strong></div>
+        <div class="stat"><span>Sisa anggaran</span><strong style="color: var(--green)"><x-money :value="$summary['remaining']" :decimals="2" /></strong></div>
+        <div class="stat"><span>Transaksi tercatat</span><strong>{{ $summary['transactions'] }} pengeluaran</strong></div>
+    </div>
+</section>
+@endif
+
+@if($hasData)
+<section class="grid grid-2" aria-label="Komposisi anggaran">
+    <article class="card" data-reveal>
+        <header class="card-head"><div><h2>Komposisi Pendapatan Desa TA {{ $payload['year'] }}</h2><p>Porsi setiap sumber terhadap total pendapatan.</p></div><span class="badge badge-blue">{{ count($payload['income']) }} sumber</span></header>
+        <div class="card-body">
+            @if(count($payload['income']))
+            <div class="donut-wrap">
+                <div class="donut"><canvas id="income-chart" role="img" aria-label="Diagram lingkaran komposisi pendapatan. Rinciannya ada pada daftar di sebelahnya."></canvas><div class="donut-center"><span>Total</span><strong><x-money :value="$summary['income']" :decimals="2" /></strong></div></div>
+                <ul class="legend">
+                    @foreach($payload['income'] as $item)
+                        <li><span class="dot" style="--dot: {{ $item['color'] }}"></span><span>{{ $item['name'] }}<small><x-money :value="$item['amount']" /></small></span><span class="pct">{{ number_format($item['percentage'], 1, ',', '.') }}%</span></li>
+                    @endforeach
+                </ul>
+            </div>
+            @else
+                <div class="empty"><x-icon name="chart-pie" /><p>Data pendapatan belum tersedia.</p></div>
+            @endif
+        </div>
+    </article>
+    <article class="card" data-reveal>
+        <header class="card-head"><div><h2>Komposisi Belanja Desa TA {{ $payload['year'] }}</h2><p>Rencana belanja per bidang. Klik batang untuk melihat kegiatannya.</p></div><a class="icon-btn" href="{{ route('budgets.index', ['type' => 'expense', 'year' => $payload['year']]) }}" aria-label="Lihat semua belanja"><x-icon name="arrow-up-right" /></a></header>
+        <div class="card-body">
+            @if(count($payload['expense']))
+                <div class="chart"><canvas id="expense-chart" role="img" aria-label="Grafik batang belanja per bidang. Nominalnya tercantum pada tabel Rincian Belanja."></canvas></div>
+            @else
+                <div class="empty"><x-icon name="chart-column" /><p>Rincian belanja per bidang belum tersedia.</p></div>
+            @endif
+        </div>
+    </article>
+</section>
+
+<section class="grid grid-2" aria-label="Rincian per sumber dan bidang">
+    @foreach([
+        ['title' => 'Rincian Pendapatan Desa', 'column' => 'Jenis pendapatan', 'items' => $payload['income'], 'total' => $summary['income'], 'type' => 'income', 'totalLabel' => 'Total pendapatan'],
+        ['title' => 'Rincian Belanja Desa', 'column' => 'Bidang belanja', 'items' => $payload['expense'], 'total' => $summary['expense'], 'type' => 'expense', 'totalLabel' => 'Total belanja'],
+    ] as $group)
+    <article class="card" data-reveal>
+        <header class="card-head"><div><h2>{{ $group['title'] }} TA {{ $payload['year'] }}</h2><p>Nilai dan persentase terhadap total.</p></div><a class="btn btn-primary btn-sm" href="{{ route('budgets.index', ['type' => $group['type'], 'year' => $payload['year']]) }}">Lihat detail</a></header>
+        <div class="table-wrap">
+            <table class="table stack">
+                <thead><tr><th class="no">No</th><th>{{ $group['column'] }}</th><th class="text-right">Anggaran (Rp)</th><th class="text-right">Persentase</th></tr></thead>
+                <tbody>
+                @foreach($group['items'] as $item)
+                    <tr style="--row: {{ $loop->index }}">
+                        <td class="no">{{ $loop->iteration }}</td>
+                        <td class="cell-main"><a class="strong" href="{{ route('budgets.index', ['type' => $group['type'], 'category' => $item['name'], 'year' => $payload['year']]) }}"><span class="dot-inline" style="--dot: {{ $item['color'] }}"></span>{{ $item['name'] }}</a></td>
+                        <td class="text-right amount" data-label="Anggaran"><x-money :value="$item['amount']" :decimals="2" /></td>
+                        <td class="text-right" data-label="Persentase">{{ number_format($item['percentage'], 1, ',', '.') }}%</td>
+                    </tr>
+                @endforeach
+                </tbody>
+                <tfoot><tr><td class="no"></td><th>{{ $group['totalLabel'] }}</th><td class="text-right"><x-money :value="$group['total']" :decimals="2" /></td><td class="text-right">100%</td></tr></tfoot>
+            </table>
+        </div>
+    </article>
+    @endforeach
+</section>
+
+<section class="grid grid-7-5" aria-label="Monitoring realisasi">
+    <article class="card" data-reveal>
+        <header class="card-head"><div><h2>Rencana vs Realisasi per Bidang</h2><p>Seberapa jauh anggaran setiap bidang sudah dibelanjakan.</p></div><a class="link" href="{{ route('realizations.index', ['year' => $payload['year']]) }}">Monitoring <x-icon name="arrow-right" /></a></header>
+        <div class="card-body">
+            @foreach($payload['expense'] as $item)
+                @php $percent = $item['realization_percent'] ?? 0; @endphp
+                <a class="progress-item" href="{{ route('budgets.index', ['type' => 'expense', 'category' => $item['name'], 'year' => $payload['year']]) }}">
+                    <div class="progress-item-head"><strong>{{ $item['name'] }}</strong><span class="num">{{ number_format($percent, 1, ',', '.') }}%</span></div>
+                    <x-progress :value="$percent" :color="$percent >= 100 ? 'green' : ($percent >= 60 ? 'blue' : 'amber')" :label="'Realisasi '.$item['name']" />
+                    <div class="progress-item-foot"><span>Realisasi <x-money :value="$item['realization']" /></span><span>Anggaran <x-money :value="$item['amount']" /></span></div>
+                </a>
+            @endforeach
+        </div>
+    </article>
+    <article class="card" data-reveal>
+        <header class="card-head"><div><h2>Pengeluaran Terbaru</h2><p>Transaksi yang baru dicatat perangkat desa.</p></div></header>
+        @forelse($payload['latest_realizations'] as $item)
+            <div class="list-row">
+                <span class="list-icon"><x-icon name="receipt-text" /></span>
+                <div><p class="list-title">{{ $item['activity'] }}</p><p class="list-meta">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j M Y') }} · {{ $item['description'] }}@if($item['is_demo']) · <span class="badge badge-demo">contoh</span>@endif</p></div>
+                <span class="amount num"><x-money :value="$item['amount']" /></span>
+            </div>
+        @empty
+            <div class="empty"><x-icon name="receipt-text" /><p>Belum ada pengeluaran yang dicatat.</p></div>
+        @endforelse
+        <footer class="card-foot"><span>{{ count($payload['latest_realizations']) }} transaksi terakhir</span><a class="link" href="{{ route('realizations.index', ['year' => $payload['year']]) }}">Semua transaksi <x-icon name="arrow-right" /></a></footer>
+    </article>
+</section>
+@endif
 @endsection
-@push('scripts')<script>window.dashboardData = {{ Illuminate\Support\Js::from(['income' => $payload['income'], 'expense' => $payload['expense']]) }};</script>@endpush
+
+@push('scripts')<script>window.dashboardData = {{ Illuminate\Support\Js::from([
+    'income' => $payload['income'],
+    'expense' => array_map(fn (array $item): array => $item + ['url' => route('budgets.index', ['type' => 'expense', 'category' => $item['name'], 'year' => $payload['year']])], $payload['expense']),
+]) }};</script>@endpush

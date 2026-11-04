@@ -18,7 +18,7 @@ use ZipArchive;
 
 class BudgetImporter
 {
-    public const HEADERS = ['year', 'type', 'category', 'description', 'amount', 'source', 'verification_status', 'source_date', 'realization'];
+    public const HEADERS = ['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'source', 'verification_status', 'source_date'];
 
     public function import(UploadedFile $file, array $defaults, User $user): int
     {
@@ -56,7 +56,7 @@ class BudgetImporter
             if ($data['verification_status'] === '') {
                 $data['verification_status'] = 'unverified';
             }
-            foreach (['realization', 'source_date'] as $key) {
+            foreach (['sub_category', 'volume', 'funding_source', 'source_date'] as $key) {
                 if (empty($data[$key]) && ($data[$key] ?? null) !== '0') {
                     $data[$key] = null;
                 }

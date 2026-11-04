@@ -32,6 +32,21 @@ class DashboardController extends Controller
         return view('about', ['payload' => $this->dashboard->payload($request)]);
     }
 
+    public function profile(Request $request): View
+    {
+        return view('profile', ['payload' => $this->dashboard->payload($request)]);
+    }
+
+    public function financing(Request $request): View
+    {
+        return view('financing', ['payload' => $this->dashboard->payload($request)]);
+    }
+
+    public function analytics(Request $request): View
+    {
+        return view('analytics', ['payload' => $this->dashboard->payload($request)]);
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $payload = $this->dashboard->payload($request);
@@ -39,10 +54,10 @@ class DashboardController extends Controller
         return response()->streamDownload(function () use ($payload): void {
             $stream = fopen('php://output', 'w');
             fwrite($stream, "\xEF\xBB\xBF");
-            fputcsv($stream, ['year', 'type', 'category', 'description', 'amount', 'source', 'verification_status', 'source_date', 'realization', 'is_demo'], ',', '"', '');
+            fputcsv($stream, ['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'realization', 'source', 'verification_status', 'source_date', 'is_demo'], ',', '"', '');
             foreach ($payload['rows'] as $row) {
                 $cells = [];
-                foreach (['year', 'type', 'category', 'description', 'amount', 'source', 'verification_status', 'source_date', 'realization', 'is_demo'] as $key) {
+                foreach (['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'realization', 'source', 'verification_status', 'source_date', 'is_demo'] as $key) {
                     $value = (string) ($row[$key] ?? '');
                     $cells[] = preg_match('/^[=+@\-\t\r\n]/', $value) ? "'".$value : $value;
                 } fputcsv($stream, $cells, ',', '"', '');
@@ -57,7 +72,7 @@ class DashboardController extends Controller
             $stream = fopen('php://output', 'w');
             fwrite($stream, "\xEF\xBB\xBF");
             fputcsv($stream, BudgetImporter::HEADERS, ',', '"', '');
-            fputcsv($stream, [2026, 'income', 'Kategori contoh', 'Uraian contoh — ganti dengan data Anda', 1000000, 'Dokumen sumber Anda', 'unverified', '2026-11-03', ''], ',', '"', '');
+            fputcsv($stream, [2026, 'expense', 'Pelaksanaan Pembangunan Desa', 'Kesehatan', 'Uraian contoh — ganti dengan data Anda', '12 bulan', 1000000, 'Dana Desa', 'Dokumen sumber Anda', 'unverified', '2026-11-03'], ',', '"', '');
             fclose($stream);
         }, 'template-apbdes.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

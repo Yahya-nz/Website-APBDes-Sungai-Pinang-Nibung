@@ -1,58 +1,82 @@
-# Portal APBDes Desa Sungai Pinang Nibung
+# Dashboard Monitoring APBDes Desa Sungai Pinang Nibung
 
-Website untuk menampilkan Anggaran Pendapatan dan Belanja Desa (APBDes) Desa
-Sungai Pinang Nibung, Kecamatan Sungai Pinang, Kabupaten Ogan Ilir. Warga bisa
-melihat ringkasan pendapatan dan belanja, mencari rincian kegiatan, dan
-mengecek dokumen sumber tiap angka tanpa perlu login. Perangkat desa yang
-ditugaskan bisa masuk untuk menambah, mengubah, dan mengimpor data.
+Website monitoring Anggaran Pendapatan dan Belanja Desa (APBDes) Desa Sungai
+Pinang Nibung, Kecamatan Sungai Pinang, Kabupaten Ogan Ilir. Tampilannya
+mengikuti mockup pada proposal capstone, dan angka anggarannya disalin dari
+baliho APBDes 2026 desa (pendapatan dan belanja masing-masing
+Rp549.108.437,83).
 
-![Ringkasan](docs/screenshots/01-ringkasan.jpg)
+![Dashboard](docs/screenshots/01-dashboard.jpg)
 
 ## Fitur
 
-- Ringkasan per tahun: perbandingan pendapatan dan belanja (surplus/defisit),
-  sumber pendapatan dalam diagram, dan belanja per bidang yang bisa diklik.
-- Rincian anggaran dengan tab Pendapatan/Belanja, filter bidang dan status,
-  serta unduh CSV sesuai filter yang dipakai.
-- Pencarian dari menu samping (`Ctrl K` / `⌘ K` atau `/`). Semua kata harus
-  ditemukan di uraian, bidang, atau sumber; hasil diurutkan dari yang paling
-  cocok dan kata kuncinya ditandai.
-- Halaman sumber data: daftar dataset dan status pemeriksaan tiap baris
-  (terverifikasi, belum diverifikasi, belum tersedia).
-- Realisasi, penyerapan, dan sisa anggaran hanya muncul kalau semua belanja
-  tahun itu sudah terverifikasi dan bukan data contoh. Data yang belum ada
-  ditulis "Belum tersedia", tidak dianggap nol.
-- Halaman pengelola: tambah/ubah/hapus baris, impor CSV atau Excel dari
-  template, riwayat aktivitas, dan riwayat dataset. Impor dibatalkan seluruhnya
-  kalau ada satu baris yang salah.
-- Data contoh selalu diberi label supaya tidak tertukar dengan data resmi.
-- Menu samping bisa diringkas menjadi ikon saja. Di ponsel menu jadi laci
-  samping dan tabel jadi kartu.
+Untuk masyarakat (tanpa login):
+
+- Dashboard: kartu total pendapatan, belanja, pembiayaan, dan realisasi;
+  donat komposisi pendapatan; grafik batang belanja per bidang; tabel rincian
+  pendapatan dan belanja; progress rencana vs realisasi; pengeluaran terbaru.
+- APBDes per menu Pendapatan, Belanja, Pembiayaan, dan Rincian Kegiatan.
+  Belanja dikelompokkan per bidang dan sub bidang seperti di baliho, lengkap
+  dengan volume, sumber dana, dan persentase realisasi.
+- Monitoring realisasi: grafik realisasi bulanan dibanding rencana, progress
+  per bidang dan per kegiatan, serta daftar transaksi per bulan.
+- Grafik & Analisis: komposisi pendapatan, belanja per sumber dana, rencana vs
+  realisasi, realisasi bulanan, status verifikasi, dan kegiatan terbesar.
+- Laporan otomatis bulanan atau semester yang bisa diunduh sebagai PDF (dengan
+  kop desa dan kolom tanda tangan) atau Excel (sheet Rekap, Kegiatan,
+  Transaksi).
+- Notifikasi pengeluaran baru lewat ikon lonceng. Penanda belum dibaca
+  disimpan di perangkat, dan daftar diperbarui otomatis setiap menit.
+- Pengaduan, pertanyaan, dan saran warga tanpa akun. Warga mendapat nomor
+  tiket untuk melihat tanggapan. Dilindungi pembatas kiriman dan jebakan bot.
+- Pencarian kegiatan (tekan `/`): semua kata harus cocok, hasil diurutkan
+  dari yang paling relevan, kata kunci ditandai.
+- Status verifikasi data, termasuk pemeriksaan otomatis kecocokan belanja per
+  sumber dana dengan pendapatannya.
+
+Untuk perangkat desa (login):
+
+- Kelola data APBDes: tambah, ubah, hapus, dan impor CSV/Excel dari template.
+- Catat realisasi per kegiatan. Peringatan muncul bila realisasi melebihi
+  anggaran, dan pengeluaran langsung tampil di notifikasi warga.
+- Kotak masuk pengaduan dengan status Baru, Diproses, Selesai beserta
+  tanggapan.
+- Riwayat aktivitas dan ganti kata sandi.
 
 | Peran | Bisa apa |
 | --- | --- |
-| Pengunjung | Melihat ringkasan, rincian, sumber data, dan mengunduh CSV. |
-| Pengelola | Semua di atas, ditambah mengelola dan mengimpor data anggaran. |
+| Masyarakat | Melihat semua halaman publik, mengunduh laporan dan CSV, mengirim dan mengecek pengaduan. |
+| Perangkat desa | Semua di atas, ditambah mengelola data, mencatat realisasi, menanggapi pengaduan. |
+
+## Tentang data
+
+- Anggaran (rencana) asli dari baliho APBDes 2026. Nama kegiatan disalin
+  dengan perbaikan salah ketik yang jelas; empat baris "Belanja barang dan
+  jasa perlengkapan kantor" dibedakan dengan sumber dananya.
+- Realisasi dan pengaduan bawaan adalah **data contoh** berlabel "contoh"
+  supaya fitur monitoring bisa dicoba. Hapus atau ganti sebelum dipakai resmi.
+- Pemeriksaan otomatis menemukan belanja bersumber Dana Desa
+  Rp290.867.000 (pendapatan DD Rp281.267.000) dan ADD Rp243.406.000
+  (pendapatan ADD Rp253.006.000). Selisih Rp9.600.000 sama dengan Insentif RT,
+  jadi baris itu ditandai belum diverifikasi sampai dicek ke dokumen APBDes.
 
 ## Teknologi
 
-- Laravel 13 (PHP 8.4+) dengan Blade
-- MySQL untuk database aplikasi, SQLite in-memory untuk tes
-- Vite, CSS biasa, Chart.js untuk diagram, ikon Lucide
-- PhpSpreadsheet untuk membaca berkas .xlsx
-- Huruf Plus Jakarta Sans (dibundel lewat Fontsource, jadi tidak butuh
-  internet)
+- Laravel 13 (PHP 8.4+), Blade, MySQL; tes memakai SQLite in-memory
+- Vite, CSS biasa, Chart.js, ikon Lucide, huruf Plus Jakarta Sans (tanpa CDN)
+- PhpSpreadsheet untuk impor dan laporan Excel, laravel-dompdf untuk PDF
 
-Struktur singkat: `app/Services` berisi perhitungan ringkasan dan impor,
-`app/Support/BudgetSearch.php` logika pencarian, `resources/views` tampilan
-Blade, `resources/css/app.css` gaya dasar, `resources/css/secondary.css`
-penyesuaian, animasi, dan halaman login, `resources/js/app.js` interaksi,
-`tests/` pengujian.
+Struktur singkat: `app/Services/BudgetDashboard.php` perhitungan ringkasan,
+realisasi, dan grafik; `app/Services/ReportBuilder.php` dan
+`ReportSpreadsheet.php` laporan; `app/Support/BudgetSearch.php` pencarian;
+`database/seeders/BalihoApbdes2026.php` data baliho; `resources/views`
+tampilan; `resources/css/app.css` dan `resources/js/app.js` gaya dan
+interaksi; `tests/` pengujian.
 
 ## Menjalankan di komputer sendiri
 
-Perlu PHP 8.4 atau lebih baru (extension pdo_mysql, mbstring, fileinfo,
-openssl, gd, zip, xml), MySQL, Composer, dan Node.js 20.19+.
+Perlu PHP 8.4+ (pdo_mysql, mbstring, fileinfo, openssl, gd, zip, xml, dom),
+MySQL, Composer, dan Node.js 20.19+.
 
 ```sh
 composer install
@@ -62,22 +86,19 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Buat database kosong `apbdes_nibung` di MySQL, sesuaikan `DB_*` di `.env`,
-lalu:
+Buat database kosong `apbdes_nibung`, sesuaikan `DB_*` serta
+`APBDES_ADMIN_EMAIL` dan `APBDES_ADMIN_PASSWORD` di `.env`, lalu:
 
 ```sh
 php artisan migrate --seed
 php artisan serve
 ```
 
-Buka http://127.0.0.1:8000. Seeder membuat 15 baris data contoh dan satu akun
-pengelola dari `APBDES_ADMIN_EMAIL` dan `APBDES_ADMIN_PASSWORD` di `.env`.
-Ganti kata sandinya sebelum seeding kalau aplikasi dipakai sungguhan.
+Buka http://127.0.0.1:8000. Halaman perangkat desa ada di menu Kelola Data
+(login dengan akun dari `.env`). Saat mengubah tampilan, jalankan `npm run dev`
+bersamaan dengan `php artisan serve`.
 
-Saat mengubah tampilan, jalankan `npm run dev` bersamaan dengan
-`php artisan serve` supaya halaman ter-refresh otomatis.
-
-Tes otomatis (butuh extension pdo_sqlite):
+Tes otomatis (butuh pdo_sqlite):
 
 ```sh
 php artisan test
@@ -85,36 +106,37 @@ php artisan test
 
 ## Impor data
 
-Unduh template dari halaman Kelola data. Kolomnya: `year`, `type`
-(`income`/`expense`), `category`, `description`, `amount`, `source`,
-`verification_status`, `source_date`, `realization`. Nominal ditulis tanpa Rp
-dan tanpa titik ribuan, misalnya `25000000`. Panduan lengkap ada di
-`Panduan Website APBDes Nibung.pdf` yang dikirim bersama paket aplikasi.
-
-## Catatan
-
-Angka bawaan adalah data contoh, bukan APBDes resmi desa. Portal ini tidak
-terhubung ke Siskeudes dan bukan pengganti Peraturan Desa tentang APBDes.
+Template diunduh dari halaman Kelola Data. Kolom: `year`, `type`
+(`income`/`expense`), `category`, `sub_category`, `description`, `volume`,
+`amount`, `funding_source`, `source`, `verification_status`, `source_date`.
+Nominal ditulis tanpa Rp dan tanpa titik ribuan, misalnya `25000000`.
 
 <details>
 <summary>Tangkapan layar lain</summary>
 
-![Rincian anggaran](docs/screenshots/02-rincian-anggaran.jpg)
-![Belanja per bidang](docs/screenshots/03-belanja-per-bidang.jpg)
-![Sumber data](docs/screenshots/04-sumber-data.jpg)
-![Tentang portal](docs/screenshots/05-tentang-portal.jpg)
-![Tahun tanpa data](docs/screenshots/06-tahun-tanpa-data.jpg)
-![Menu pengunjung](docs/screenshots/07-menu-pengunjung.jpg)
-![Menu diringkas](docs/screenshots/08-menu-diringkas.jpg)
-![Masuk pengelola](docs/screenshots/09-masuk-pengelola.jpg)
-![Kelola data](docs/screenshots/10-kelola-data.jpg)
-![Formulir tambah baris](docs/screenshots/11-formulir-tambah-baris.jpg)
-![Konfirmasi hapus](docs/screenshots/12-konfirmasi-hapus.jpg)
-![Impor berkas](docs/screenshots/13-impor-berkas.jpg)
-![Menu akun pengelola](docs/screenshots/14-menu-akun-pengelola.jpg)
-![Ringkasan di ponsel](docs/screenshots/15-ponsel-ringkasan.jpg)
-![Menu di ponsel](docs/screenshots/16-ponsel-menu.jpg)
-![Rincian di ponsel](docs/screenshots/17-ponsel-rincian.jpg)
-![Hasil pencarian](docs/screenshots/18-hasil-pencarian.jpg)
+![Profil desa](docs/screenshots/02-profil-desa.jpg)
+![Pendapatan](docs/screenshots/03-pendapatan.jpg)
+![Belanja](docs/screenshots/04-belanja.jpg)
+![Pembiayaan](docs/screenshots/05-pembiayaan.jpg)
+![Realisasi anggaran](docs/screenshots/06-realisasi-anggaran.jpg)
+![Grafik dan analisis](docs/screenshots/07-grafik-analisis.jpg)
+![Laporan](docs/screenshots/08-laporan.jpg)
+![Laporan PDF](docs/screenshots/09-laporan-pdf.jpg)
+![Pengaduan warga](docs/screenshots/10-pengaduan-warga.jpg)
+![Status pengaduan](docs/screenshots/11-status-pengaduan.jpg)
+![Status verifikasi](docs/screenshots/12-status-verifikasi.jpg)
+![Notifikasi](docs/screenshots/13-notifikasi.jpg)
+![Menu diringkas](docs/screenshots/14-menu-diringkas.jpg)
+![Masuk perangkat desa](docs/screenshots/15-masuk-perangkat-desa.jpg)
+![Kelola data](docs/screenshots/16-kelola-data.jpg)
+![Formulir anggaran](docs/screenshots/17-formulir-anggaran.jpg)
+![Catat realisasi](docs/screenshots/18-catat-realisasi.jpg)
+![Pengaduan masuk](docs/screenshots/19-pengaduan-masuk.jpg)
+![Pengaturan](docs/screenshots/20-pengaturan.jpg)
+![Dashboard di ponsel](docs/screenshots/21-ponsel-dashboard.jpg)
+![Menu di ponsel](docs/screenshots/22-ponsel-menu.jpg)
+![Belanja di ponsel](docs/screenshots/23-ponsel-belanja.jpg)
+![Hasil pencarian](docs/screenshots/24-hasil-pencarian.jpg)
+![Konfirmasi hapus](docs/screenshots/25-konfirmasi-hapus.jpg)
 
 </details>
