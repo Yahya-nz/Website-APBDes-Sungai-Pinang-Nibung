@@ -1,116 +1,59 @@
 import { Chart, DoughnutController, ArcElement, Tooltip } from 'chart.js';
-import {
-    createIcons,
-    ArrowBigUp, ArrowLeft, ArrowRight, CalendarX2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheck,
-    Database, Download, Eye, EyeOff, FileDown, FileSpreadsheet, FileUp, Files, FlaskConical, FolderOpen, History, Info,
-    Landmark, LayoutDashboard, Lock, LogIn, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Pencil, PencilRuler, Plus,
-    Search, SearchX, ShieldCheck, SlidersHorizontal, Trash2, Upload, UserRound, Wallet, X,
-} from 'lucide';
+import { createIcons, ArrowDownLeft, ArrowUpRight, ArrowRight, BadgeCheck, BookOpen, CalendarDays, ChartNoAxesCombined, Check, ChevronDown, ChevronLeft, ChevronRight, Command, ChevronsUpDown, CircleAlert, CircleCheck, CircleHelp, Clock3, Database, Download, Eye, EyeOff, FileQuestion, FileSpreadsheet, Files, FileUp, Fingerprint, FlaskConical, FolderOpen, History, Info, Landmark, Layers, LayoutDashboard, ListFilter, LockKeyhole, LogIn, LogOut, MapPin, Menu, Pencil, Plus, ScanLine, Search, SearchX, ShieldCheck, SlidersHorizontal, Sprout, Trash2, Upload, Wallet, MousePointer2, PanelLeftClose, PanelLeftOpen, X, Mail, ArrowLeft, ArrowBigUp } from 'lucide';
 
-const icons = {
-    ArrowBigUp, ArrowLeft, ArrowRight, CalendarX2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheck,
-    Database, Download, Eye, EyeOff, FileDown, FileSpreadsheet, FileUp, Files, FlaskConical, FolderOpen, History, Info,
-    Landmark, LayoutDashboard, Lock, LogIn, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Pencil, PencilRuler, Plus,
-    Search, SearchX, ShieldCheck, SlidersHorizontal, Trash2, Upload, UserRound, Wallet, X,
-};
-const renderIcons = () => createIcons({ icons });
-renderIcons();
+const icons = { ArrowDownLeft, ArrowUpRight, ArrowRight, BadgeCheck, BookOpen, CalendarDays, ChartNoAxesCombined, Check, ChevronDown, ChevronLeft, ChevronRight, Command, ChevronsUpDown, CircleAlert, CircleCheck, CircleHelp, Clock3, Database, Download, Eye, EyeOff, FileQuestion, FileSpreadsheet, Files, FileUp, Fingerprint, FlaskConical, FolderOpen, History, Info, Landmark, Layers, LayoutDashboard, ListFilter, LockKeyhole, LogIn, LogOut, MapPin, Menu, Pencil, Plus, ScanLine, Search, SearchX, ShieldCheck, SlidersHorizontal, Sprout, Trash2, Upload, Wallet, MousePointer2, PanelLeftClose, PanelLeftOpen, X, Mail, ArrowLeft, ArrowBigUp };
+createIcons({ icons });
 
+const rupiah = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const rupiah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+Chart.register(DoughnutController, ArcElement, Tooltip);
+Chart.defaults.font.family = 'Plus Jakarta Sans Variable, sans-serif';
+Chart.defaults.color = '#8b967f';
+Chart.defaults.animation.duration = reducedMotion ? 0 : 650;
+Chart.defaults.plugins.legend = { display: false };
+const tooltipOptions = {
+    backgroundColor: '#193e30', titleColor: '#fff', bodyColor: '#c7d4bc', padding: 13,
+    cornerRadius: 8, displayColors: false, titleFont: { size: 10, weight: 500 },
+    bodyFont: { size: 11, weight: 600 }, callbacks: { label: (context) => rupiah(context.raw) },
+};
 
-/* ---------- Muncul bertahap saat discroll ---------- */
-const revealItems = [...document.querySelectorAll('[data-reveal]')];
-revealItems.forEach((item, index) => item.style.setProperty('--reveal-index', Math.min(index, 6)));
-if (document.documentElement.classList.contains('js-reveal')) {
-    let batch = 0;
-    const observer = new IntersectionObserver((entries) => {
-        entries.filter((entry) => entry.isIntersecting).forEach((entry) => {
-            entry.target.style.setProperty('--reveal-index', batch++);
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-            entry.target.querySelectorAll('[data-count]').forEach(countUp);
+function renderCharts() {
+    const data = window.dashboardData;
+    if (!data) return;
+    const incomeCanvas = document.getElementById('income-chart');
+    if (incomeCanvas) {
+        new Chart(incomeCanvas, {
+            type: 'doughnut',
+            data: { labels: data.income.map((row) => row.name), datasets: [{ data: data.income.map((row) => Number(row.amount)), backgroundColor: data.income.map((row) => row.color), borderWidth: 0, hoverOffset: 5, borderRadius: 10, spacing: 5 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '78%', layout: { padding: 4 }, animation: reducedMotion ? false : { duration: 1100, easing: 'easeOutQuart', animateRotate: true }, plugins: { legend: { display: false }, tooltip: tooltipOptions } },
         });
-        requestAnimationFrame(() => { batch = 0; });
-    }, { rootMargin: '0px 0px -40px 0px' });
-    revealItems.forEach((item) => observer.observe(item));
+    }
+
 }
 
-/* ---------- Angka naik dari nol ---------- */
-function countUp(element) {
-    if (reducedMotion || element.dataset.counted) return;
-    element.dataset.counted = 'true';
-    const raw = element.dataset.count;
-    const decimals = raw.includes(',') ? raw.split(',')[1].length : 0;
-    const target = Number(raw.replace(/\./g, '').replace(',', '.'));
-    if (!Number.isFinite(target) || target === 0) return;
-    const format = new Intl.NumberFormat('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-    const duration = 1100;
-    const start = performance.now() + 150;
-    const tick = (now) => {
-        const progress = Math.min(Math.max((now - start) / duration, 0), 1);
-        const eased = 1 - Math.pow(1 - progress, 4);
-        element.textContent = format.format(target * eased);
-        if (progress < 1) requestAnimationFrame(tick); else element.textContent = raw;
-    };
-    element.textContent = format.format(0);
-    requestAnimationFrame(tick);
-}
-if (!document.documentElement.classList.contains('js-reveal')) document.querySelectorAll('[data-count]').forEach(countUp);
-
-/* ---------- Diagram pendapatan ---------- */
-function renderIncomeChart() {
-    const canvas = document.getElementById('income-chart');
-    const income = window.dashboardData?.income;
-    if (!canvas || !income?.length) return;
-    Chart.register(DoughnutController, ArcElement, Tooltip);
-    new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-            labels: income.map((row) => row.name),
-            datasets: [{ data: income.map((row) => Number(row.amount)), backgroundColor: income.map((row) => row.color), borderColor: '#fff', borderWidth: 2, hoverOffset: 6 }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '68%',
-            layout: { padding: 6 },
-            animation: reducedMotion ? false : { duration: 1000, easing: 'easeOutQuart', animateRotate: true, animateScale: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#16212b', padding: 10, cornerRadius: 6, displayColors: false,
-                    titleFont: { family: 'Plus Jakarta Sans Variable', size: 12, weight: 500 },
-                    bodyFont: { family: 'Plus Jakarta Sans Variable', size: 13, weight: 700 },
-                    callbacks: { label: (context) => rupiah.format(context.raw) },
-                },
-            },
-        },
-    });
-}
-if (document.fonts?.ready) document.fonts.ready.then(renderIncomeChart); else renderIncomeChart();
-
-/* ---------- Topbar & pencarian ---------- */
-const topbar = document.querySelector('.topbar');
-const syncTopbar = () => topbar?.classList.toggle('is-scrolled', window.scrollY > 4);
-window.addEventListener('scroll', syncTopbar, { passive: true });
-syncTopbar();
-
+if (document.fonts?.ready) document.fonts.ready.then(renderCharts); else renderCharts();
 
 document.querySelectorAll('[data-auto-submit]').forEach((select) => select.addEventListener('change', () => select.form.requestSubmit()));
-
+const dismissFlash = (flash) => { flash.classList.add('is-leaving'); flash.addEventListener('animationend', () => flash.remove(), { once: true }); };
+document.querySelectorAll('[data-dismiss]').forEach((button) => button.addEventListener('click', () => dismissFlash(button.closest('.flash'))));
+document.querySelectorAll('.flash-success').forEach((flash) => setTimeout(() => flash.isConnected && dismissFlash(flash), 6000));
 document.getElementById('profile-menu')?.addEventListener('toggle', (event) => {
-    document.querySelector('[data-profile-trigger]')?.setAttribute('aria-expanded', String(event.newState === 'open'));
+    document.querySelector('[data-profile-trigger]').setAttribute('aria-expanded', String(event.newState === 'open'));
 });
-
-/* ---------- Sidebar ---------- */
-const shortcutHint = document.querySelector('[data-shortcut-hint]');
-if (shortcutHint && !/Mac|iPhone|iPad/.test(navigator.platform)) shortcutHint.textContent = 'Ctrl K';
+document.querySelectorAll('[data-toggle-password]').forEach((button) => button.addEventListener('click', () => {
+    const input = document.getElementById(button.dataset.togglePassword);
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(visible));
+    button.setAttribute('aria-label', visible ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+    button.innerHTML = `<i data-lucide="${visible ? 'eye-off' : 'eye'}" class="icon" aria-hidden="true"></i>`;
+    createIcons({ icons });
+}));
 
 const sidebarToggles = [...document.querySelectorAll('[data-sidebar-toggle]')];
 const sidebar = document.getElementById('sidebar');
 const appMain = document.querySelector('.app-main');
-const desktopSidebar = window.matchMedia('(min-width: 961px)');
+const desktopSidebar = window.matchMedia('(min-width: 681px)');
 const navGroupToggle = document.querySelector('[data-nav-group-toggle]');
 const dashboardSubmenu = document.getElementById('dashboard-submenu');
 const dashboardFlyout = document.getElementById('dashboard-flyout');
@@ -199,7 +142,7 @@ function syncSidebar() {
         button.innerHTML = `<i data-lucide="${icon}" class="icon" aria-hidden="true"></i>`;
     }
     syncDashboardGroup();
-    renderIcons();
+    createIcons({ icons });
 }
 
 function setDesktopSidebarCollapsed(collapsed) {
@@ -228,7 +171,8 @@ sidebarToggles.forEach((button) => button.addEventListener('click', () => {
     if (desktopSidebar.matches) setDesktopSidebarCollapsed(!sidebarIsRail());
     else toggleMobileSidebar(!document.body.classList.contains('sidebar-open'));
 }));
-document.querySelectorAll('[data-sidebar-close]').forEach((element) => element.addEventListener('click', () => toggleMobileSidebar(false)));
+document.querySelector('[data-sidebar-close]')?.addEventListener('click', () => toggleMobileSidebar(false));
+document.querySelector('[data-sidebar-dismiss]')?.addEventListener('click', () => toggleMobileSidebar(false));
 document.querySelector('[data-sidebar-search-open]')?.addEventListener('click', focusSidebarSearch);
 navGroupToggle?.addEventListener('click', () => {
     if (sidebarIsRail()) {
@@ -290,32 +234,97 @@ sidebar?.addEventListener('scroll', () => closeDashboardFlyout(true), { passive:
 window.addEventListener('pagehide', () => closeDashboardFlyout());
 syncSidebar();
 
-/* ---------- Pesan sukses ---------- */
-document.querySelectorAll('[data-toast]').forEach((toast) => {
-    const close = () => { toast.classList.add('is-leaving'); toast.addEventListener('animationend', () => toast.remove(), { once: true }); };
-    toast.querySelector('[data-toast-close]')?.addEventListener('click', close);
-    setTimeout(close, 5000);
+const budgetDialog = document.getElementById('budget-dialog');
+const budgetForm = document.getElementById('budget-form');
+const dialogTitle = budgetDialog?.querySelector('[data-dialog-title]');
+const fields = ['year', 'type', 'category', 'description', 'amount', 'realization', 'source', 'source_date', 'verification_status'];
+document.querySelector('[data-budget-open]')?.addEventListener('click', () => {
+    budgetForm.reset();
+    budgetForm.action = budgetForm.dataset.storeUrl;
+    budgetForm.elements._method.disabled = true;
+    budgetForm.elements._editing_id.value = '';
+    fields.filter((field) => !['year','type','verification_status'].includes(field)).forEach((field) => budgetForm.elements[field].value = '');
+    budgetForm.elements.verification_status.value = 'unverified';
+    dialogTitle.textContent = 'Tambah anggaran';
+    budgetForm.querySelector('[data-budget-demo-note]').hidden = true;
+    budgetDialog.showModal();
 });
-
-/* ---------- Login ---------- */
-document.querySelectorAll('[data-toggle-password]').forEach((button) => button.addEventListener('click', () => {
-    const input = document.getElementById(button.dataset.togglePassword);
-    const visible = input.type === 'password';
-    input.type = visible ? 'text' : 'password';
-    button.setAttribute('aria-pressed', String(visible));
-    button.setAttribute('aria-label', visible ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
-    button.innerHTML = `<i data-lucide="${visible ? 'eye-off' : 'eye'}" class="icon" aria-hidden="true"></i>`;
-    renderIcons();
+document.querySelectorAll('[data-budget-edit]').forEach((button) => button.addEventListener('click', () => {
+    const budget = JSON.parse(button.dataset.budgetEdit);
+    budgetForm.action = button.dataset.updateUrl;
+    budgetForm.elements._method.disabled = false;
+    budgetForm.elements._editing_id.value = budget.id;
+    fields.forEach((field) => budgetForm.elements[field].value = budget[field] ?? '');
+    dialogTitle.textContent = 'Edit anggaran';
+    budgetForm.querySelector('[data-budget-demo-note]').hidden = !budget.is_demo;
+    budgetDialog.showModal();
 }));
-const capsWarning = document.querySelector('[data-caps-warning]');
-document.querySelectorAll('[data-caps-check]').forEach((input) => {
-    const check = (event) => { if (capsWarning && event.getModifierState) capsWarning.hidden = !event.getModifierState('CapsLock'); };
-    input.addEventListener('keydown', check);
-    input.addEventListener('keyup', check);
-    input.addEventListener('blur', () => { if (capsWarning) capsWarning.hidden = true; });
-});
+document.querySelectorAll('[data-dialog-close]').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
+document.querySelectorAll('dialog').forEach((dialog) => dialog.addEventListener('click', (event) => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close(); } }));
+if (budgetDialog?.hasAttribute('data-open-on-load')) {
+    const editingId = budgetForm.elements._editing_id.value;
+    if (editingId) { budgetForm.action = `${budgetForm.dataset.storeUrl}/${encodeURIComponent(editingId)}`; budgetForm.elements._method.disabled = false; dialogTitle.textContent = 'Edit anggaran'; }
+    budgetDialog.showModal();
+}
+const deleteDialog = document.getElementById('delete-dialog');
+let deleteForm = null;
+document.querySelectorAll('[data-confirm-delete]').forEach((form) => form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    deleteForm = form;
+    deleteDialog.querySelector('[data-delete-description]').textContent = form.dataset.confirmDelete;
+    deleteDialog.showModal();
+}));
+document.querySelector('[data-delete-confirm]')?.addEventListener('click', (event) => { if (deleteForm) { event.currentTarget.disabled = true; deleteForm.submit(); } });
+document.querySelectorAll('form').forEach((form) => form.addEventListener('submit', (event) => {
+    if (event.defaultPrevented) return;
+    const button = event.submitter;
+    if (button && form.method.toLowerCase() === 'post') { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+}));
+if (document.querySelector('[data-error-summary]') && !budgetDialog?.open) document.querySelector('[data-error-summary]').focus();
 
-/* ---------- Impor berkas ---------- */
+/* ---------- Animasi masuk dan angka naik ---------- */
+const revealSelector = '.page-heading, .overview-banner, .demo-notice, .metric-card, .realization-summary, .charts-grid > .card, .budget-preview, .bottom-note, .budget-totals, main > section.card, .info-strip, .quality-metric, .quality-grid > .card, .quality-note, .about-intro, .about-features > .card, .about-reading, .admin-data-card, .admin-lower-grid > .card, .dataset-history';
+
+function countUp(element) {
+    if (reducedMotion || element.dataset.counted) return;
+    element.dataset.counted = 'true';
+    const raw = element.dataset.count;
+    const decimals = raw.includes(',') ? raw.split(',')[1].length : 0;
+    const target = Number(raw.replace(/\./g, '').replace(',', '.'));
+    if (!Number.isFinite(target) || target === 0) return;
+    const format = new Intl.NumberFormat('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    const start = performance.now() + 150;
+    const tick = (now) => {
+        const progress = Math.min(Math.max((now - start) / 1100, 0), 1);
+        element.textContent = format.format(target * (1 - Math.pow(1 - progress, 4)));
+        if (progress < 1) requestAnimationFrame(tick); else element.textContent = raw;
+    };
+    element.textContent = format.format(0);
+    requestAnimationFrame(tick);
+}
+
+if (document.documentElement.classList.contains('js-reveal')) {
+    let batch = 0;
+    const observer = new IntersectionObserver((entries) => {
+        entries.filter((entry) => entry.isIntersecting).forEach((entry) => {
+            entry.target.style.setProperty('--reveal-index', Math.min(batch++, 6));
+            entry.target.classList.add('is-visible');
+            entry.target.querySelectorAll('[data-count]').forEach(countUp);
+            observer.unobserve(entry.target);
+        });
+        requestAnimationFrame(() => { batch = 0; });
+    }, { rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll(revealSelector).forEach((element) => observer.observe(element));
+    setTimeout(() => document.querySelectorAll(revealSelector).forEach((element) => element.classList.add('is-visible')), 3000);
+} else {
+    document.querySelectorAll('[data-count]').forEach(countUp);
+}
+
+/* ---------- Petunjuk pintasan pencarian ---------- */
+const shortcutHint = document.querySelector('[data-shortcut-hint]');
+if (shortcutHint && !/Mac|iPhone|iPad/.test(navigator.platform)) shortcutHint.textContent = 'Ctrl K';
+
+/* ---------- Kotak unggah berkas ---------- */
 const fileSize = (bytes) => (bytes < 1024 ? `${bytes} byte` : bytes < 1048576 ? `${Math.round(bytes / 1024).toLocaleString('id-ID')} KB` : `${(bytes / 1048576).toLocaleString('id-ID', { maximumFractionDigits: 1 })} MB`);
 document.querySelectorAll('[data-dropzone]').forEach((zone) => {
     const input = zone.querySelector('input[type=file]');
@@ -337,83 +346,11 @@ document.querySelectorAll('[data-dropzone]').forEach((zone) => {
     input.addEventListener('change', showFile);
 });
 
-/* ---------- Formulir anggaran ---------- */
-document.querySelectorAll('[data-money-preview]').forEach((input) => {
-    const output = input.parentElement.querySelector('[data-money-output]');
-    const update = () => { if (output) output.textContent = input.value !== '' && Number(input.value) >= 0 ? `= ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(Number(input.value))}` : ''; };
-    input.addEventListener('input', update);
-    update();
+/* ---------- Peringatan Caps Lock di halaman login ---------- */
+const capsWarning = document.querySelector('[data-caps-warning]');
+document.querySelectorAll('[data-caps-check]').forEach((input) => {
+    const check = (event) => { if (capsWarning && event.getModifierState) capsWarning.hidden = !event.getModifierState('CapsLock'); };
+    input.addEventListener('keydown', check);
+    input.addEventListener('keyup', check);
+    input.addEventListener('blur', () => { if (capsWarning) capsWarning.hidden = true; });
 });
-
-const budgetDialog = document.getElementById('budget-dialog');
-const budgetForm = document.getElementById('budget-form');
-const dialogTitle = budgetDialog?.querySelector('[data-dialog-title]');
-const fields = ['year', 'type', 'category', 'description', 'amount', 'realization', 'source', 'source_date', 'verification_status'];
-const refreshMoneyPreview = () => budgetForm?.querySelectorAll('[data-money-preview]').forEach((input) => input.dispatchEvent(new Event('input')));
-
-document.querySelector('[data-budget-open]')?.addEventListener('click', () => {
-    const year = budgetForm.elements.year.value;
-    budgetForm.reset();
-    budgetForm.action = budgetForm.dataset.storeUrl;
-    budgetForm.elements._method.disabled = true;
-    budgetForm.elements._editing_id.value = '';
-    fields.filter((field) => !['year', 'type', 'verification_status'].includes(field)).forEach((field) => { budgetForm.elements[field].value = ''; });
-    budgetForm.elements.year.value = year;
-    budgetForm.elements.verification_status.value = 'unverified';
-    dialogTitle.textContent = 'Tambah baris anggaran';
-    budgetForm.querySelector('[data-budget-demo-note]').hidden = true;
-    refreshMoneyPreview();
-    budgetDialog.showModal();
-});
-document.querySelectorAll('[data-budget-edit]').forEach((button) => button.addEventListener('click', () => {
-    const budget = JSON.parse(button.dataset.budgetEdit);
-    budgetForm.action = button.dataset.updateUrl;
-    budgetForm.elements._method.disabled = false;
-    budgetForm.elements._editing_id.value = budget.id;
-    fields.forEach((field) => { budgetForm.elements[field].value = budget[field] ?? ''; });
-    dialogTitle.textContent = 'Ubah baris anggaran';
-    budgetForm.querySelector('[data-budget-demo-note]').hidden = !budget.is_demo;
-    refreshMoneyPreview();
-    budgetDialog.showModal();
-}));
-document.querySelectorAll('[data-dialog-close]').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
-document.querySelectorAll('dialog').forEach((dialog) => dialog.addEventListener('click', (event) => {
-    if (event.target !== dialog) return;
-    const rect = dialog.getBoundingClientRect();
-    const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
-    if (outside) dialog.close();
-}));
-if (budgetDialog?.hasAttribute('data-open-on-load')) {
-    const editingId = budgetForm.elements._editing_id.value;
-    if (editingId) {
-        budgetForm.action = `${budgetForm.dataset.storeUrl}/${encodeURIComponent(editingId)}`;
-        budgetForm.elements._method.disabled = false;
-        dialogTitle.textContent = 'Ubah baris anggaran';
-    }
-    budgetDialog.showModal();
-}
-
-const deleteDialog = document.getElementById('delete-dialog');
-let pendingDeleteForm = null;
-document.querySelectorAll('[data-confirm-delete]').forEach((form) => form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    pendingDeleteForm = form;
-    deleteDialog.querySelector('[data-delete-description]').textContent = form.dataset.confirmDelete;
-    deleteDialog.showModal();
-}));
-document.querySelector('[data-delete-confirm]')?.addEventListener('click', (event) => {
-    if (!pendingDeleteForm) return;
-    event.currentTarget.disabled = true;
-    event.currentTarget.setAttribute('aria-busy', 'true');
-    pendingDeleteForm.submit();
-});
-
-/* Cegah klik ganda saat formulir POST dikirim. */
-document.querySelectorAll('form').forEach((form) => form.addEventListener('submit', (event) => {
-    if (event.defaultPrevented || form.method.toLowerCase() !== 'post') return;
-    const button = event.submitter;
-    if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
-}));
-
-const errorSummary = document.querySelector('[data-error-summary]');
-if (errorSummary && !budgetDialog?.open) errorSummary.focus();

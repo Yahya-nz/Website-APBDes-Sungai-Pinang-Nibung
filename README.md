@@ -40,12 +40,14 @@ ditugaskan bisa masuk untuk menambah, mengubah, dan mengimpor data.
 - MySQL untuk database aplikasi, SQLite in-memory untuk tes
 - Vite, CSS biasa, Chart.js untuk diagram, ikon Lucide
 - PhpSpreadsheet untuk membaca berkas .xlsx
-- Huruf Plus Jakarta Sans dan Source Serif 4 (dibundel lewat Fontsource,
-  jadi tidak butuh internet)
+- Huruf Plus Jakarta Sans (dibundel lewat Fontsource, jadi tidak butuh
+  internet)
 
 Struktur singkat: `app/Services` berisi perhitungan ringkasan dan impor,
-`app/Support/BudgetSearch.php` logika pencarian, `resources/views` tampilan Blade, `resources/css/app.css` dan
-`resources/js/app.js` gaya serta interaksi, `tests/` pengujian.
+`app/Support/BudgetSearch.php` logika pencarian, `resources/views` tampilan
+Blade, `resources/css/app.css` gaya dasar, `resources/css/secondary.css`
+penyesuaian, animasi, dan halaman login, `resources/js/app.js` interaksi,
+`tests/` pengujian.
 
 ## Menjalankan di komputer sendiri
 

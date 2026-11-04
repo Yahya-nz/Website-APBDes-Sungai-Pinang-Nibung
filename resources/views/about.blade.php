@@ -1,50 +1,19 @@
 @extends('layouts.app')
+
 @section('title', 'Tentang portal')
+
 @section('content')
-<header class="page-header" data-reveal>
-    <div>
-        <p class="page-kicker">Tentang</p>
-        <h1>Portal APBDes Sungai Pinang Nibung</h1>
-        <p class="page-lead">Desa Sungai Pinang Nibung, Kecamatan Sungai Pinang, Kabupaten Ogan Ilir.</p>
-    </div>
-</header>
+<div class="page-heading"><div><div class="page-kicker">Tentang</div><h1>Portal APBDes Sungai Pinang Nibung</h1><p>Desa Sungai Pinang Nibung, Kecamatan Sungai Pinang, Kabupaten Ogan Ilir.</p></div></div>
 
-<div class="about">
-    <article class="prose" data-reveal>
-        <p class="prose-lead">Portal ini menampilkan Anggaran Pendapatan dan Belanja Desa (APBDes) dalam bentuk yang mudah dibaca: ringkasan, grafik, dan tabel rincian yang bisa dicari serta diunduh.</p>
-        <p>Warga bisa melihat dari mana pendapatan desa berasal, ke bidang apa saja dana direncanakan, dan dokumen apa yang menjadi dasarnya. Setiap baris anggaran mencantumkan sumber dan status pemeriksaannya, sehingga pembaca tahu angka mana yang sudah dicek dan mana yang belum.</p>
+<section class="card about-intro"><div class="card-body"><h2>Apa isi portal ini?</h2><p>Dashboard ini menyajikan informasi Anggaran Pendapatan dan Belanja Desa Sungai Pinang Nibung dalam bentuk ringkasan, grafik, dan rincian yang dapat ditelusuri. Tujuannya sederhana: membantu masyarakat melihat sumber pendapatan dan rencana peruntukan anggaran dengan lebih jelas.</p><div class="about-location"><x-icon name="map-pin" /><span>Desa Sungai Pinang Nibung · Kecamatan Sungai Pinang · Kabupaten Ogan Ilir</span></div></div></section>
 
-        <h2>Yang bisa dilakukan di sini</h2>
-        <ul class="link-list">
-            <li><a href="{{ route('dashboard') }}"><strong>Ringkasan</strong><span>Total pendapatan dan belanja, sumber pendapatan, dan belanja per bidang.</span><x-icon name="arrow-right" /></a></li>
-            <li><a href="{{ route('budgets.index') }}"><strong>Rincian anggaran</strong><span>Cari kegiatan, saring per bidang atau status, lalu unduh sebagai CSV.</span><x-icon name="arrow-right" /></a></li>
-            <li><a href="{{ route('quality') }}"><strong>Kualitas data</strong><span>Daftar dataset beserta status pemeriksaannya.</span><x-icon name="arrow-right" /></a></li>
-        </ul>
-
-        <h2>Istilah yang sering muncul</h2>
-        <dl class="glossary">
-            <dt>Pendapatan</dt>
-            <dd>Rencana penerimaan desa, misalnya Dana Desa (DD) dari APBN, Alokasi Dana Desa (ADD) dari kabupaten, bagi hasil pajak, dan pendapatan asli desa.</dd>
-            <dt>Belanja</dt>
-            <dd>Rencana penggunaan dana, dikelompokkan ke lima bidang: penyelenggaraan pemerintahan, pembangunan, pembinaan kemasyarakatan, pemberdayaan masyarakat, dan penanggulangan bencana.</dd>
-            <dt>Realisasi</dt>
-            <dd>Dana yang benar-benar sudah diterima atau dibelanjakan. Angka ini berbeda dari rencana dan baru ditampilkan setelah diverifikasi.</dd>
-            <dt>Surplus / defisit</dt>
-            <dd>Selisih rencana pendapatan dan belanja. Defisit biasanya ditutup dengan pembiayaan, misalnya sisa anggaran tahun sebelumnya.</dd>
-        </dl>
-    </article>
-
-    <aside class="about-side" data-reveal>
-        <div class="callout">
-            <h2>Batasan</h2>
-            <p>Portal ini membantu penyajian informasi, bukan pengganti dokumen resmi. Rujukan utama tetap Peraturan Desa tentang APBDes yang ditetapkan pemerintah desa.</p>
-            <p>Data berlabel <span class="demo-tag">contoh</span> hanya untuk mencoba fitur dan tidak menggambarkan keuangan desa yang sebenarnya.</p>
-        </div>
-        <div class="callout callout-plain">
-            <h2>Untuk pengelola</h2>
-            <p>Perangkat desa yang ditugaskan dapat masuk untuk menambah, memperbarui, dan mengimpor data anggaran.</p>
-            <a class="text-link" href="{{ route('login') }}">Masuk pengelola <x-icon name="arrow-right" /></a>
-        </div>
-    </aside>
+<div class="about-features">
+    <section class="card"><div class="card-body"><span class="metric-icon"><x-icon name="chart-no-axes-combined" /></span><h3>Ringkasan</h3><p>Ringkasan dan visualisasi memperlihatkan komposisi pendapatan serta alokasi belanja.</p><a class="text-link" href="{{ route('dashboard') }}">Buka dashboard <x-icon name="arrow-up-right" /></a></div></section>
+    <section class="card"><div class="card-body"><span class="metric-icon"><x-icon name="search" /></span><h3>Rincian anggaran</h3><p>Cari uraian, pilih kategori dan tahun, lalu unduh data untuk dipelajari lebih lanjut.</p><a class="text-link" href="{{ route('budgets.index') }}">Lihat rincian anggaran <x-icon name="arrow-up-right" /></a></div></section>
+    <section class="card"><div class="card-body"><span class="metric-icon"><x-icon name="shield-check" /></span><h3>Kualitas data</h3><p>Informasi sumber, pembaruan, dan status verifikasi memberi konteks pada setiap angka.</p><a class="text-link" href="{{ route('quality') }}">Periksa kualitas data <x-icon name="arrow-up-right" /></a></div></section>
 </div>
+
+<section class="card about-reading"><div class="card-header"><div><h2>Istilah yang sering muncul</h2><p>Tiga istilah dasar untuk membaca APBDes.</p></div><x-icon name="book-open" /></div><div class="card-body glossary-grid"><article><span>01</span><h3>Pendapatan</h3><p>Rencana penerimaan desa dari berbagai sumber, seperti Dana Desa, Alokasi Dana Desa, dan pendapatan asli desa.</p></article><article><span>02</span><h3>Belanja</h3><p>Rencana penggunaan dana untuk bidang pemerintahan, pembangunan, pembinaan, pemberdayaan, dan kebutuhan desa lainnya.</p></article><article><span>03</span><h3>Realisasi</h3><p>Nilai penerimaan atau pengeluaran yang sudah terlaksana. Angka ini membutuhkan data pendukung yang berbeda dari rencana anggaran.</p></article></div></section>
+
+<section class="card quality-note"><div class="card-body"><div class="quality-note-icon"><x-icon name="sprout" /></div><div><h3>Batasan penggunaan</h3><p>Portal ini membantu penyajian informasi. Dokumen resmi pemerintah desa tetap menjadi rujukan utama. Data berlabel demo hanya digunakan untuk mencoba fitur dan tidak menggambarkan keuangan desa yang sebenarnya.</p></div></div></section>
 @endsection

@@ -64,7 +64,7 @@ class BudgetDashboard
 
     private function composition(Collection $lines, float $total): array
     {
-        $colors = ['#0D5163', '#2E8199', '#D49A2A', '#8FBFCC', '#C8DDE2'];
+        $colors = ['#174D38', '#4B8061', '#84A889', '#B8CCA8', '#DDE5CC'];
 
         return $lines->groupBy('category')->map(function (Collection $group, string $name) use ($total): array {
             $amount = Money::sum($group->pluck('amount'));

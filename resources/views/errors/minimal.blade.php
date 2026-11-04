@@ -2,10 +2,10 @@
 @section('title', $title)
 @section('content')
 <main class="error-page" id="main">
-    <x-logo class="brand-logo" />
+    <span class="auth-brand-icon error-icon"><x-icon name="landmark" /></span>
     <p class="error-code">{{ $code }}</p>
     <h1>{{ $title }}</h1>
     <p>{{ $message }}</p>
-    <a class="button button-primary" href="{{ route('dashboard') }}">Kembali ke ringkasan</a>
+    <a class="auth-submit error-button" href="{{ route('dashboard') }}">Kembali ke ringkasan</a>
 </main>
 @endsection
