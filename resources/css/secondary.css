@@ -640,3 +640,17 @@ html body .activity-item h3 { font-size: 14px !important; }
 html body .activity-item p { font-size: 13px !important; }
 html body .activity-meta { font-size: 12px !important; }
 html body .card-header .badge, html body .badge { font-size: 11.5px !important; }
+
+/* Topbar menyatu dengan latar dan sejajar dengan tombol panah di tepi
+   sidebar. Di desktop cukup satu tombol untuk meringkas menu (panah di
+   tepi sidebar); ikon panel hanya dipakai di ponsel untuk membuka menu. */
+html body .topbar { height: 96px; padding: 54px 34px 0; background: transparent; border-bottom: 0; box-sizing: border-box; }
+html body main { padding-top: 22px; }
+@media (min-width: 681px) {
+    html body .topbar .sidebar-toggle { display: none; }
+    html body .topbar-left { gap: 0; }
+}
+@media (max-width: 680px) {
+    html body .topbar { height: 64px; padding: 0 18px; }
+    html body main { padding-top: 8px; }
+}
