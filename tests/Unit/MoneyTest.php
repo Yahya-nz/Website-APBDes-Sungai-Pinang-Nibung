@@ -32,4 +32,11 @@ class MoneyTest extends TestCase
     {
         $this->assertSame(0.3, Money::sum(['0.10', '0.20']));
     }
+
+    public function test_format_writes_full_rupiah_with_indonesian_separators(): void
+    {
+        $this->assertSame('Rp549.108.437,83', Money::format('549108437.83'));
+        $this->assertSame('-Rp9.600.000,00', Money::format(-9_600_000));
+        $this->assertSame('Rp1.000', Money::format(1000, 0));
+    }
 }

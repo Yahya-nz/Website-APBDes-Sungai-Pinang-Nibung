@@ -36,29 +36,44 @@ Untuk masyarakat (tanpa login):
 
 Untuk perangkat desa (login):
 
-- Kelola data APBDes: tambah, ubah, hapus, dan impor CSV/Excel dari template.
+- Dashboard Pengelola (halaman pertama setelah login): ringkasan data,
+  daftar hal yang perlu ditindaklanjuti (pengaduan baru, realisasi melebihi
+  anggaran, hasil pemeriksaan otomatis), pengaduan yang belum selesai,
+  dan riwayat terbaru.
+- Pengelolaan Data APBDes mengikuti mockup halaman pengelola di proposal:
+  1. impor CSV/Excel, 2. informasi sumber data (periode, nama sumber, dan
+  tanggal pembaruan wajib dicatat), 3. pemeriksaan otomatis dan status
+  verifikasi (bisa ditetapkan untuk banyak baris sekaligus), 4. riwayat
+  dataset (ubah informasi sumber, atau hapus untuk membatalkan impor yang
+  salah), lalu tabel anggaran untuk tambah, ubah, dan hapus. Uraian ganda
+  pada bidang dan tahun yang sama ditolak.
 - Catat realisasi per kegiatan. Peringatan muncul bila realisasi melebihi
   anggaran, dan pengeluaran langsung tampil di notifikasi warga.
 - Kotak masuk pengaduan dengan status Baru, Diproses, Selesai beserta
   tanggapan.
-- Riwayat aktivitas dan ganti kata sandi.
+- Pengguna & hak akses: tambah akun perangkat desa, cabut atau pulihkan
+  aksesnya (akun tidak dihapus supaya riwayatnya tetap terbaca).
+- Riwayat aktivitas lengkap dengan saringan jenis, dan ganti kata sandi.
 
 | Peran | Bisa apa |
 | --- | --- |
 | Masyarakat | Melihat semua halaman publik, mengunduh laporan dan CSV, mengirim dan mengecek pengaduan. |
-| Perangkat desa | Semua di atas, ditambah mengelola data, mencatat realisasi, menanggapi pengaduan. |
+| Perangkat desa | Semua di atas, ditambah mengelola data, memverifikasi, mencatat realisasi, menanggapi pengaduan, dan menambah akun perangkat desa lain. |
 
 ## Tentang data
 
 - Anggaran (rencana) asli dari baliho APBDes 2026. Nama kegiatan disalin
   dengan perbaikan salah ketik yang jelas; empat baris "Belanja barang dan
   jasa perlengkapan kantor" dibedakan dengan sumber dananya.
-- Realisasi dan pengaduan bawaan adalah **data contoh** berlabel "contoh"
-  supaya fitur monitoring bisa dicoba. Hapus atau ganti sebelum dipakai resmi.
+- Realisasi, sisa anggaran, dan penyerapan hanya dihitung dari kegiatan yang
+  sudah terverifikasi. Kegiatan yang belum diverifikasi tetap tampil dengan
+  label statusnya dan keterangan "belum dihitung", termasuk di laporan PDF dan
+  Excel.
 - Pemeriksaan otomatis menemukan belanja bersumber Dana Desa
   Rp290.867.000 (pendapatan DD Rp281.267.000) dan ADD Rp243.406.000
   (pendapatan ADD Rp253.006.000). Selisih Rp9.600.000 sama dengan Insentif RT,
-  jadi baris itu ditandai belum diverifikasi sampai dicek ke dokumen APBDes.
+  jadi baris itu ditandai belum diverifikasi sampai dicek ke dokumen APBDes
+  dan realisasinya belum ikut dihitung.
 
 ## Teknologi
 
@@ -94,8 +109,8 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-Buka http://127.0.0.1:8000. Halaman perangkat desa ada di menu Kelola Data
-(login dengan akun dari `.env`). Saat mengubah tampilan, jalankan `npm run dev`
+Buka http://127.0.0.1:8000. Halaman perangkat desa ada di `/kelola` (menu
+Kelola Data). Akun untuk pengujian ada di [AKUN-UJI.md](AKUN-UJI.md). Saat mengubah tampilan, jalankan `npm run dev`
 bersamaan dengan `php artisan serve`.
 
 Tes otomatis (butuh pdo_sqlite):
@@ -106,7 +121,10 @@ php artisan test
 
 ## Impor data
 
-Template diunduh dari halaman Kelola Data. Kolom: `year`, `type`
+Template diunduh dari halaman Pengelolaan Data. Saat impor, periode
+anggaran, nama/jenis sumber, dan tanggal pembaruan wajib diisi; nilainya
+tercatat di Riwayat Dataset dan dipakai untuk baris yang kolom sumbernya
+kosong. Kolom: `year`, `type`
 (`income`/`expense`), `category`, `sub_category`, `description`, `volume`,
 `amount`, `funding_source`, `source`, `verification_status`, `source_date`.
 Nominal ditulis tanpa Rp dan tanpa titik ribuan, misalnya `25000000`.
@@ -128,7 +146,7 @@ Nominal ditulis tanpa Rp dan tanpa titik ribuan, misalnya `25000000`.
 ![Notifikasi](docs/screenshots/13-notifikasi.jpg)
 ![Menu diringkas](docs/screenshots/14-menu-diringkas.jpg)
 ![Masuk perangkat desa](docs/screenshots/15-masuk-perangkat-desa.jpg)
-![Kelola data](docs/screenshots/16-kelola-data.jpg)
+![Pengelolaan data](docs/screenshots/16-kelola-data.jpg)
 ![Formulir anggaran](docs/screenshots/17-formulir-anggaran.jpg)
 ![Catat realisasi](docs/screenshots/18-catat-realisasi.jpg)
 ![Pengaduan masuk](docs/screenshots/19-pengaduan-masuk.jpg)
@@ -138,5 +156,9 @@ Nominal ditulis tanpa Rp dan tanpa titik ribuan, misalnya `25000000`.
 ![Belanja di ponsel](docs/screenshots/23-ponsel-belanja.jpg)
 ![Hasil pencarian](docs/screenshots/24-hasil-pencarian.jpg)
 ![Konfirmasi hapus](docs/screenshots/25-konfirmasi-hapus.jpg)
+![Dashboard pengelola](docs/screenshots/26-dashboard-pengelola.jpg)
+![Verifikasi beberapa baris](docs/screenshots/27-verifikasi-massal.jpg)
+![Pengguna dan hak akses](docs/screenshots/28-pengguna.jpg)
+![Riwayat aktivitas](docs/screenshots/29-riwayat-aktivitas.jpg)
 
 </details>

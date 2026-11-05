@@ -55,7 +55,8 @@ class ReportSpreadsheet
         $row = 7;
         foreach ($report['activities'] as $category => $activities) {
             foreach ($activities as $activity) {
-                $sheet->fromArray([$category, $activity['description'], $activity['volume'], $activity['funding_source'], $activity['budget'], $activity['period'], $activity['cumulative'], $activity['percent'] / 100], null, "A{$row}");
+                $description = $activity['counted'] ? $activity['description'] : $activity['description'].' (belum diverifikasi, tidak dihitung)';
+                $sheet->fromArray([$category, $description, $activity['volume'], $activity['funding_source'], $activity['budget'], $activity['period'], $activity['cumulative'], $activity['percent'] === null ? null : $activity['percent'] / 100], null, "A{$row}", true);
                 $row++;
             }
         }
@@ -72,7 +73,7 @@ class ReportSpreadsheet
         $sheet->fromArray(['Tanggal', 'Bidang', 'Kegiatan', 'Keterangan', 'Nominal'], null, 'A6');
         $row = 7;
         foreach ($report['transactions'] as $transaction) {
-            $sheet->fromArray([Carbon::parse($transaction['date'])->format('d/m/Y'), $transaction['category'], $transaction['activity'], $transaction['description'].($transaction['is_demo'] ? ' (contoh)' : ''), $transaction['amount']], null, "A{$row}");
+            $sheet->fromArray([Carbon::parse($transaction['date'])->format('d/m/Y'), $transaction['category'], $transaction['activity'], $transaction['description'].($transaction['counted'] ? '' : ' (tidak dihitung, kegiatan belum diverifikasi)'), $transaction['amount']], null, "A{$row}");
             $row++;
         }
         $this->table($sheet, 'A6:E'.max(6, $row - 1), 'E7:E'.max(7, $row - 1), null, null);
@@ -86,8 +87,8 @@ class ReportSpreadsheet
         $sheet->setCellValue('A1', 'Laporan Realisasi APBDes Desa Sungai Pinang Nibung');
         $sheet->setCellValue('A2', 'Kecamatan Sungai Pinang, Kabupaten Ogan Ilir');
         $sheet->setCellValue('A3', 'Periode: '.$report['label'].' ('.Carbon::parse($report['start'])->format('d/m/Y').' – '.Carbon::parse($report['end'])->format('d/m/Y').')');
-        if ($report['is_demo']) {
-            $sheet->setCellValue('A4', 'Catatan: realisasi pada laporan ini adalah data contoh, bukan data resmi.');
+        if ($report['uncounted']['activities'] !== []) {
+            $sheet->setCellValue('A4', 'Catatan: '.count($report['uncounted']['activities']).' kegiatan belum diverifikasi ('.implode(', ', $report['uncounted']['activities']).') tidak dihitung dalam realisasi, sisa anggaran, dan penyerapan.');
             $sheet->getStyle('A4')->getFont()->setItalic(true)->getColor()->setRGB('B45309');
         }
         $sheet->mergeCells("A1:{$lastColumn}1");

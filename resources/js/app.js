@@ -129,7 +129,7 @@ const charts = {
             data: {
                 labels: items.map((item) => axisLabel(canvas, item.name)),
                 datasets: [
-                    { label: 'Anggaran', data: items.map((item) => Number(item.amount)), backgroundColor: '#bfdbfe', borderRadius: 6, maxBarThickness: 34 },
+                    { label: 'Anggaran terverifikasi', data: items.map((item) => Number(item.counted_amount ?? item.amount)), backgroundColor: '#bfdbfe', borderRadius: 6, maxBarThickness: 34 },
                     { label: 'Realisasi', data: items.map((item) => Number(item.realization)), backgroundColor: '#2563eb', borderRadius: 6, maxBarThickness: 34 },
                 ],
             },
@@ -226,6 +226,15 @@ document.addEventListener('keydown', (event) => {
 desktop.addEventListener('change', () => { document.body.classList.remove('sidebar-open'); syncSidebar(); });
 syncSidebar();
 
+/* Menu perangkat desa ada di bawah; geser daftar menu agar halaman yang aktif terlihat. */
+const sidebarNav = sidebar?.querySelector('.sidebar-nav');
+const activeNavLink = sidebarNav?.querySelector('.nav-link.is-active, .subnav a.is-active');
+if (sidebarNav && activeNavLink) {
+    const navBox = sidebarNav.getBoundingClientRect();
+    const linkBox = activeNavLink.getBoundingClientRect();
+    if (linkBox.bottom > navBox.bottom || linkBox.top < navBox.top) sidebarNav.scrollTop += linkBox.top - navBox.top - (navBox.height - linkBox.height) / 2;
+}
+
 /* ---------- Menu profil ---------- */
 const profileMenu = document.getElementById('profile-menu');
 const profileTrigger = document.querySelector('[data-profile-trigger]');
@@ -276,7 +285,7 @@ async function refreshBell() {
         const known = new Set([...bellList.querySelectorAll('[data-notification-id]')].map((item) => item.dataset.notificationId));
         if (!feed.items.some((item) => !known.has(item.id))) return;
         const date = (value) => new Date(`${value}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-        bellList.innerHTML = feed.items.map((item) => `<a class="bell-item" href="${escapeHtml(item.url)}" data-notification-id="${escapeHtml(item.id)}"><span class="bell-icon ${item.kind === 'complaint' ? 'is-complaint' : ''}"><i data-lucide="${item.kind === 'complaint' ? 'message-square-text' : 'receipt-text'}" class="icon"></i></span><span><span class="bell-title">${escapeHtml(item.title)}</span><span class="bell-detail">${escapeHtml(item.detail)}</span><span class="bell-date">${date(item.date)}${item.is_demo ? ' · contoh' : ''}</span></span></a>`).join('');
+        bellList.innerHTML = feed.items.map((item) => `<a class="bell-item" href="${escapeHtml(item.url)}" data-notification-id="${escapeHtml(item.id)}"><span class="bell-icon ${item.kind === 'complaint' ? 'is-complaint' : ''}"><i data-lucide="${item.kind === 'complaint' ? 'message-square-text' : 'receipt-text'}" class="icon"></i></span><span><span class="bell-title">${escapeHtml(item.title)}</span><span class="bell-detail">${escapeHtml(item.detail)}</span><span class="bell-date">${date(item.date)}</span></span></a>`).join('');
         renderIcons();
         if (syncBell() && !reducedMotion) { bellButton.classList.remove('has-new'); void bellButton.offsetWidth; bellButton.classList.add('has-new'); }
     } catch { /* jaringan sedang tidak tersedia */ }
@@ -409,13 +418,69 @@ if (budgetDialog?.hasAttribute('data-open-on-load')) {
     budgetDialog.showModal();
 }
 
+/* Dialog ubah informasi sumber dataset pada Riwayat Dataset. */
+const datasetDialog = document.getElementById('dataset-dialog');
+const datasetForm = datasetDialog?.querySelector('[data-dataset-form]');
+document.querySelectorAll('[data-dataset-edit]').forEach((button) => button.addEventListener('click', () => {
+    const dataset = JSON.parse(button.dataset.datasetEdit);
+    datasetForm.action = button.dataset.updateUrl;
+    datasetForm.elements.namedItem('_dataset_id').value = dataset.id;
+    ['name', 'source', 'source_date'].forEach((field) => { datasetForm.elements.namedItem(field).value = dataset[field] ?? ''; });
+    datasetForm.elements.namedItem('apply_to_lines').checked = true;
+    datasetDialog.querySelector('[data-dataset-rows]').textContent = `${dataset.rows} baris`;
+    datasetDialog.querySelector('[data-dataset-error]')?.remove();
+    datasetDialog.showModal();
+}));
+if (datasetDialog?.hasAttribute('data-open-on-load')) datasetDialog.showModal();
+
+/* Pilih beberapa baris anggaran lalu tetapkan status verifikasinya sekaligus. */
+const bulkForm = document.querySelector('[data-bulk-bar]');
+if (bulkForm) {
+    const boxes = [...document.querySelectorAll(`input[form="${bulkForm.id}"][name="ids[]"]`)];
+    const selectAll = bulkForm.querySelector('[data-select-all]');
+    const count = bulkForm.querySelector('[data-bulk-count]');
+    const submit = bulkForm.querySelector('[type=submit]');
+    const idleText = count.textContent;
+    const sync = () => {
+        const selected = boxes.filter((box) => box.checked).length;
+        count.textContent = selected ? `${selected} baris dipilih` : idleText;
+        submit.disabled = selected === 0;
+        bulkForm.classList.toggle('has-selection', selected > 0);
+        selectAll.checked = selected > 0 && selected === boxes.length;
+        selectAll.indeterminate = selected > 0 && selected < boxes.length;
+        selectAll.disabled = boxes.length === 0;
+        boxes.forEach((box) => box.closest('tr')?.classList.toggle('is-selected', box.checked));
+    };
+    selectAll.addEventListener('change', () => { boxes.forEach((box) => { box.checked = selectAll.checked; }); sync(); });
+    boxes.forEach((box) => box.addEventListener('change', sync));
+    sync();
+}
+
+/* Saring baris tabel kecil langsung saat mengetik, misalnya Riwayat Dataset. */
+document.querySelectorAll('[data-table-filter]').forEach((input) => {
+    const rows = [...document.querySelectorAll(input.dataset.tableFilter)];
+    const empty = input.dataset.emptyTarget ? document.querySelector(input.dataset.emptyTarget) : null;
+    input.addEventListener('input', () => {
+        const term = input.value.trim().toLocaleLowerCase('id');
+        let shown = 0;
+        rows.forEach((row) => {
+            const match = term === '' || row.textContent.toLocaleLowerCase('id').includes(term);
+            row.hidden = !match;
+            if (match) shown++;
+        });
+        if (empty) empty.hidden = shown > 0 || rows.length === 0;
+    });
+});
+
 const confirmDialog = document.getElementById('confirm-dialog');
 let pendingForm = null;
 document.querySelectorAll('form[data-confirm]').forEach((form) => form.addEventListener('submit', (event) => {
     if (!confirmDialog || form.dataset.confirmed) return;
     event.preventDefault();
     pendingForm = form;
+    confirmDialog.querySelector('[data-confirm-title]').textContent = form.dataset.confirmTitle ?? 'Yakin ingin menghapus?';
     confirmDialog.querySelector('[data-confirm-text]').textContent = form.dataset.confirm;
+    confirmDialog.querySelector('[data-confirm-yes]').textContent = form.dataset.confirmButton ?? 'Ya, hapus';
     confirmDialog.showModal();
 }));
 confirmDialog?.querySelector('[data-confirm-yes]')?.addEventListener('click', (event) => {

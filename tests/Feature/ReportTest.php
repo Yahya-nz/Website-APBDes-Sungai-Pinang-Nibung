@@ -17,7 +17,7 @@ class ReportTest extends TestCase
     {
         parent::setUp();
         $this->withoutVite();
-        $line = BudgetLine::factory()->create(['type' => 'expense', 'category' => 'Pembangunan Desa', 'description' => 'Pembuatan sumur bor', 'amount' => '1000.00']);
+        $line = BudgetLine::factory()->verified()->create(['type' => 'expense', 'category' => 'Pembangunan Desa', 'description' => 'Pembuatan sumur bor', 'amount' => '1000.00']);
         Realization::factory()->create(['budget_line_id' => $line->id, 'spent_on' => '2026-02-10', 'amount' => '100.00', 'description' => 'Pembayaran Februari']);
         Realization::factory()->create(['budget_line_id' => $line->id, 'spent_on' => '2026-08-12', 'amount' => '300.00', 'description' => 'Pembayaran Agustus']);
     }
@@ -70,11 +70,28 @@ class ReportTest extends TestCase
         }
     }
 
-    public function test_demo_realization_is_marked_in_the_filename(): void
+    public function test_trial_transactions_do_not_change_the_report_filename(): void
     {
         Realization::factory()->demo()->create(['budget_line_id' => BudgetLine::first()->id, 'spent_on' => '2026-08-20']);
 
-        $this->get(route('reports.download', ['format' => 'pdf', 'year' => 2026, 'period' => 'month', 'value' => 8]))->assertDownload('laporan-realisasi-2026-08-CONTOH.pdf');
+        $this->get(route('reports.download', ['format' => 'pdf', 'year' => 2026, 'period' => 'month', 'value' => 8]))->assertDownload('laporan-realisasi-2026-08.pdf');
+    }
+
+    public function test_unverified_activities_are_listed_but_left_out_of_report_totals(): void
+    {
+        $unverified = BudgetLine::factory()->create(['type' => 'expense', 'category' => 'Pembangunan Desa', 'description' => 'Insentif belum dicek', 'amount' => '500.00']);
+        Realization::factory()->create(['budget_line_id' => $unverified->id, 'spent_on' => '2026-08-05', 'amount' => '250.00', 'description' => 'Pembayaran insentif']);
+
+        $report = app(ReportBuilder::class)->build(2026, 'month', 8);
+
+        $this->assertSame(1000.0, $report['totals']['budget']);
+        $this->assertSame(400.0, $report['totals']['cumulative']);
+        $this->assertSame(40.0, $report['totals']['percent']);
+        $this->assertSame(['Insentif belum dicek'], $report['uncounted']['activities']);
+        $this->assertNull(collect($report['activities']['Pembangunan Desa'])->firstWhere('description', 'Insentif belum dicek')['cumulative']);
+        $this->get(route('reports.index', ['year' => 2026, 'period' => 'month', 'value' => 8]))->assertOk()->assertSeeText('1 kegiatan belum diverifikasi')->assertSeeText('tidak dihitung');
+        $this->get(route('reports.download', ['format' => 'xlsx', 'year' => 2026, 'period' => 'month', 'value' => 8]))->assertOk();
+        $this->get(route('reports.download', ['format' => 'pdf', 'year' => 2026, 'period' => 'month', 'value' => 8]))->assertOk();
     }
 
     public function test_unknown_formats_and_periods_are_rejected(): void

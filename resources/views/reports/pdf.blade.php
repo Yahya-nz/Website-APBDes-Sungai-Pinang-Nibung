@@ -17,7 +17,7 @@
     h2 { font-size: 11.5px; margin: 14px 0 6px; color: #1e3a8a; }
     .meta { width: 100%; margin-bottom: 6px; }
     .meta td { padding: 2px 0; font-size: 10px; }
-    .demo { padding: 6px 10px; margin-bottom: 8px; border: 1px dashed #d97706; background: #fff7e6; color: #92400e; font-size: 9.5px; }
+    .note { padding: 6px 10px; margin-bottom: 8px; border: 1px dashed #d97706; background: #fff7e6; color: #92400e; font-size: 9.5px; }
     table.data { width: 100%; border-collapse: collapse; }
     table.data th { background: #1e3a8a; color: #fff; font-size: 9px; padding: 5px 6px; text-align: left; }
     table.data td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
@@ -42,7 +42,7 @@
         <p><strong>LAPORAN REALISASI ANGGARAN PENDAPATAN DAN BELANJA DESA — {{ strtoupper($report['label']) }}</strong></p>
     </div>
     <table class="meta"><tr><td>Periode: {{ $date($report['start']) }} s.d. {{ $date($report['end']) }}</td><td style="text-align:right">Total pendapatan (rencana): {{ $money($report['income_total']) }}</td></tr></table>
-    @if($report['is_demo'])<div class="demo"><strong>CONTOH.</strong> Angka anggaran berasal dari baliho APBDes {{ $report['year'] }}, tetapi realisasi pada laporan ini adalah data contoh dan bukan data resmi desa.</div>@endif
+    @if($report['uncounted']['activities'])<div class="note"><strong>Catatan.</strong> {{ count($report['uncounted']['activities']) }} kegiatan belum diverifikasi ({{ implode(', ', $report['uncounted']['activities']) }}, anggaran {{ $money($report['uncounted']['budget']) }}) tidak dihitung dalam realisasi, sisa anggaran, dan penyerapan.</div>@endif
 
     <table class="summary"><tr>
         <td><span>Anggaran belanja</span><strong>{{ $money($totals['budget']) }}</strong></td>
@@ -69,7 +69,11 @@
         @foreach($report['activities'] as $category => $activities)
             <tr class="group"><td colspan="7">{{ $category }}</td></tr>
             @foreach($activities as $activity)
-                <tr><td>{{ $activity['description'] }}</td><td>{{ $activity['volume'] }}</td><td>{{ $activity['funding_source'] }}</td><td class="r">{{ $money($activity['budget']) }}</td><td class="r">{{ $money($activity['period']) }}</td><td class="r">{{ $money($activity['cumulative']) }}</td><td class="r">{{ number_format($activity['percent'], 1, ',', '.') }}</td></tr>
+                @if($activity['counted'])
+                    <tr><td>{{ $activity['description'] }}</td><td>{{ $activity['volume'] }}</td><td>{{ $activity['funding_source'] }}</td><td class="r">{{ $money($activity['budget']) }}</td><td class="r">{{ $money($activity['period']) }}</td><td class="r">{{ $money($activity['cumulative']) }}</td><td class="r">{{ number_format($activity['percent'], 1, ',', '.') }}</td></tr>
+                @else
+                    <tr><td>{{ $activity['description'] }} <em>(belum diverifikasi)</em></td><td>{{ $activity['volume'] }}</td><td>{{ $activity['funding_source'] }}</td><td class="r">{{ $money($activity['budget']) }}</td><td class="r" colspan="3">tidak dihitung</td></tr>
+                @endif
             @endforeach
         @endforeach
         </tbody>
@@ -81,7 +85,7 @@
         <thead><tr><th>Tanggal</th><th>Bidang</th><th>Kegiatan</th><th>Keterangan</th><th class="r">Nominal</th></tr></thead>
         <tbody>
         @forelse($report['transactions'] as $item)
-            <tr><td>{{ \Carbon\Carbon::parse($item['date'])->format('d/m/Y') }}</td><td>{{ $item['category'] }}</td><td>{{ $item['activity'] }}</td><td>{{ $item['description'] }}{{ $item['is_demo'] ? ' (contoh)' : '' }}</td><td class="r">{{ $money($item['amount']) }}</td></tr>
+            <tr><td>{{ \Carbon\Carbon::parse($item['date'])->format('d/m/Y') }}</td><td>{{ $item['category'] }}</td><td>{{ $item['activity'] }}</td><td>{{ $item['description'] }}{{ $item['counted'] ? '' : ' (tidak dihitung)' }}</td><td class="r">{{ $money($item['amount']) }}</td></tr>
         @empty
             <tr><td colspan="5">Tidak ada transaksi pada periode ini.</td></tr>
         @endforelse

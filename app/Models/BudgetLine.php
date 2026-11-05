@@ -11,6 +11,9 @@ class BudgetLine extends Model
 {
     use HasFactory;
 
+    /** Status verifikasi data sesuai rancangan: terverifikasi, belum diverifikasi, belum tersedia. */
+    public const STATUSES = ['verified' => 'Terverifikasi', 'unverified' => 'Belum diverifikasi', 'unavailable' => 'Belum tersedia'];
+
     protected $fillable = ['dataset_id', 'year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'source', 'source_date', 'verification_status', 'is_demo'];
 
     protected function casts(): array

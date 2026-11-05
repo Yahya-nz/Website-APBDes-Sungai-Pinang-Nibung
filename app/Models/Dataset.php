@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Dataset extends Model
 {
@@ -21,6 +22,11 @@ class Dataset extends Model
     public function budgetLines(): HasMany
     {
         return $this->hasMany(BudgetLine::class);
+    }
+
+    public function realizations(): HasManyThrough
+    {
+        return $this->hasManyThrough(Realization::class, BudgetLine::class);
     }
 
     public function user(): BelongsTo

@@ -1,13 +1,16 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DatasetController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RealizationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman publik untuk masyarakat (tanpa login).
@@ -35,15 +38,23 @@ Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->
 // Halaman perangkat desa.
 Route::middleware(['auth', 'can:manage-data'])->prefix('kelola')->group(function (): void {
     Route::get('/', [AdminController::class, 'index'])->name('admin.index');
+    Route::get('/anggaran', [AdminController::class, 'budgets'])->name('admin.budgets.index');
     Route::post('/anggaran', [AdminController::class, 'store'])->name('admin.budgets.store');
-    Route::patch('/anggaran/{budget}', [AdminController::class, 'update'])->name('admin.budgets.update');
-    Route::delete('/anggaran/{budget}', [AdminController::class, 'destroy'])->name('admin.budgets.destroy');
+    Route::patch('/anggaran/status', [AdminController::class, 'verify'])->name('admin.budgets.verify');
+    Route::patch('/anggaran/{budget}', [AdminController::class, 'update'])->whereNumber('budget')->name('admin.budgets.update');
+    Route::delete('/anggaran/{budget}', [AdminController::class, 'destroy'])->whereNumber('budget')->name('admin.budgets.destroy');
     Route::post('/impor', [AdminController::class, 'import'])->middleware('throttle:20,1')->name('admin.import');
+    Route::patch('/dataset/{dataset}', [DatasetController::class, 'update'])->name('admin.datasets.update');
+    Route::delete('/dataset/{dataset}', [DatasetController::class, 'destroy'])->name('admin.datasets.destroy');
     Route::get('/realisasi', [RealizationController::class, 'manage'])->name('admin.realizations.index');
     Route::post('/realisasi', [RealizationController::class, 'store'])->name('admin.realizations.store');
     Route::delete('/realisasi/{realization}', [RealizationController::class, 'destroy'])->name('admin.realizations.destroy');
     Route::get('/pengaduan', [ComplaintController::class, 'manage'])->name('admin.complaints.index');
     Route::patch('/pengaduan/{complaint}', [ComplaintController::class, 'update'])->name('admin.complaints.update');
+    Route::get('/pengguna', [UserController::class, 'index'])->name('admin.users.index');
+    Route::post('/pengguna', [UserController::class, 'store'])->name('admin.users.store');
+    Route::patch('/pengguna/{user}/akses', [UserController::class, 'access'])->name('admin.users.access');
+    Route::get('/riwayat', [ActivityLogController::class, 'index'])->name('admin.activities.index');
     Route::get('/pengaturan', [SettingsController::class, 'edit'])->name('admin.settings');
     Route::put('/pengaturan/kata-sandi', [SettingsController::class, 'updatePassword'])->name('admin.settings.password');
 });

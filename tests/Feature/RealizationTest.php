@@ -64,7 +64,7 @@ class RealizationTest extends TestCase
 
     public function test_public_monitoring_page_shows_progress_and_filters_by_month(): void
     {
-        $line = BudgetLine::factory()->create(['type' => 'expense', 'category' => 'Pembangunan Desa', 'description' => 'Jalan rabat beton', 'amount' => '1000.00']);
+        $line = BudgetLine::factory()->verified()->create(['type' => 'expense', 'category' => 'Pembangunan Desa', 'description' => 'Jalan rabat beton', 'amount' => '1000.00']);
         Realization::factory()->create(['budget_line_id' => $line->id, 'spent_on' => '2026-07-08', 'amount' => '400.00', 'description' => 'Termin Juli']);
         Realization::factory()->create(['budget_line_id' => $line->id, 'spent_on' => '2026-08-26', 'amount' => '100.00', 'description' => 'Termin Agustus']);
 

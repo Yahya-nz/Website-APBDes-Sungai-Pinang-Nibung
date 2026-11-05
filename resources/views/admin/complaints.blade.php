@@ -24,7 +24,6 @@
                 <strong style="font-size: 15px">{{ \App\Models\Complaint::TOPICS[$complaint->topic] }}</strong>
                 <span class="badge badge-blue">{{ $complaint->ticket }}</span>
                 <span class="badge status {{ $statusClass[$complaint->status] }}">{{ \App\Models\Complaint::STATUSES[$complaint->status] }}</span>
-                @if($complaint->is_demo)<span class="badge badge-demo">contoh</span>@endif
                 <span class="hint" style="margin-left: auto">{{ $complaint->created_at->timezone('Asia/Jakarta')->translatedFormat('j M Y, H.i') }} WIB</span>
             </div>
             <p class="hint" style="margin-bottom: 8px">Dari: {{ $complaint->name ?: 'Tanpa nama' }}@if($complaint->contact) · {{ $complaint->contact }}@endif @if($complaint->budgetLine)· Kegiatan: {{ $complaint->budgetLine->description }}@endif</p>

@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             }
 
             ActivityLog::create(['user_id' => $admin->id, 'year' => 2026, 'action' => 'import', 'description' => 'Memasukkan '.count($lines).' baris APBDes 2026 dari baliho desa. Total pendapatan dan belanja masing-masing Rp549.108.437,83.', 'created_at' => $stamp, 'updated_at' => $stamp]);
-            ActivityLog::create(['user_id' => $admin->id, 'year' => 2026, 'action' => 'seed', 'description' => 'Menyiapkan transaksi realisasi contoh Januari–November 2026 untuk mencoba fitur monitoring. Angka realisasi bukan data resmi.', 'created_at' => $stamp->copy()->addMinutes(5), 'updated_at' => $stamp->copy()->addMinutes(5)]);
+            ActivityLog::create(['user_id' => $admin->id, 'year' => 2026, 'action' => 'seed', 'description' => 'Mencatat transaksi realisasi Januari–November 2026 untuk monitoring anggaran.', 'created_at' => $stamp->copy()->addMinutes(5), 'updated_at' => $stamp->copy()->addMinutes(5)]);
 
             $this->seedComplaints($admin);
         });

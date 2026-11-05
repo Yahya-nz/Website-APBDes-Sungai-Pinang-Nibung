@@ -24,7 +24,17 @@
         ['label' => 'Status Verifikasi', 'icon' => 'shield-check', 'route' => 'quality'],
         ['label' => 'Tentang Portal', 'icon' => 'info', 'route' => 'about'],
     ];
-    $newComplaints = auth()->check() ? \App\Models\Complaint::where('status', 'new')->count() : 0;
+    $canManage = auth()->user()?->can('manage-data') ?? false;
+    $newComplaints = $canManage ? \App\Models\Complaint::where('status', 'new')->count() : 0;
+    $adminLinks = [
+        ['label' => 'Dashboard Pengelola', 'icon' => 'gauge', 'href' => route('admin.index', ['year' => $selectedYear]), 'active' => request()->routeIs('admin.index')],
+        ['label' => 'Pengelolaan Data', 'icon' => 'database', 'href' => route('admin.budgets.index', ['year' => $selectedYear]), 'active' => request()->routeIs('admin.budgets.*')],
+        ['label' => 'Catat Realisasi', 'icon' => 'receipt-text', 'href' => route('admin.realizations.index', ['year' => $selectedYear]), 'active' => request()->routeIs('admin.realizations.*')],
+        ['label' => 'Pengaduan Masuk', 'icon' => 'inbox', 'href' => route('admin.complaints.index'), 'active' => request()->routeIs('admin.complaints.*'), 'badge' => $newComplaints],
+        ['label' => 'Pengguna', 'icon' => 'users-round', 'href' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
+        ['label' => 'Riwayat Aktivitas', 'icon' => 'history', 'href' => route('admin.activities.index'), 'active' => request()->routeIs('admin.activities.*')],
+        ['label' => 'Pengaturan', 'icon' => 'settings', 'href' => route('admin.settings'), 'active' => request()->routeIs('admin.settings*')],
+    ];
     $notifications = $notificationFeed['items'] ?? [];
 @endphp
 <!DOCTYPE html>
@@ -78,14 +88,13 @@
             @endforeach
 
             <span class="nav-label">Perangkat desa</span>
-            @auth
-                <a class="nav-link {{ request()->routeIs('admin.index') ? 'is-active' : '' }}" href="{{ route('admin.index', ['year' => $selectedYear]) }}" title="Kelola Data APBDes"><x-icon name="database" /><span class="nav-text">Kelola Data APBDes</span></a>
-                <a class="nav-link {{ request()->routeIs('admin.realizations.*') ? 'is-active' : '' }}" href="{{ route('admin.realizations.index', ['year' => $selectedYear]) }}" title="Catat Realisasi"><x-icon name="receipt-text" /><span class="nav-text">Catat Realisasi</span></a>
-                <a class="nav-link {{ request()->routeIs('admin.complaints.*') ? 'is-active' : '' }}" href="{{ route('admin.complaints.index') }}" title="Pengaduan Masuk"><x-icon name="inbox" /><span class="nav-text">Pengaduan Masuk</span>@if($newComplaints)<span class="nav-badge">{{ $newComplaints }}</span>@endif</a>
-                <a class="nav-link {{ request()->routeIs('admin.settings') ? 'is-active' : '' }}" href="{{ route('admin.settings') }}" title="Pengaturan"><x-icon name="settings" /><span class="nav-text">Pengaturan</span></a>
+            @if($canManage)
+                @foreach($adminLinks as $link)
+                    <a class="nav-link {{ $link['active'] ? 'is-active' : '' }}" href="{{ $link['href'] }}" title="{{ $link['label'] }}" @if($link['active']) aria-current="page" @endif><x-icon :name="$link['icon']" /><span class="nav-text">{{ $link['label'] }}</span>@if($link['badge'] ?? 0)<span class="nav-badge" aria-label="{{ $link['badge'] }} baru">{{ $link['badge'] }}</span>@endif</a>
+                @endforeach
             @else
                 <a class="nav-link {{ request()->routeIs('admin.*') ? 'is-active' : '' }}" href="{{ route('admin.index') }}" title="Kelola Data"><x-icon name="lock-keyhole" /><span class="nav-text">Kelola Data</span></a>
-            @endauth
+            @endif
         </nav>
 
         <div class="sidebar-foot">
@@ -121,7 +130,7 @@
                         @forelse($notifications as $item)
                             <a class="bell-item" href="{{ $item['url'] }}" data-notification-id="{{ $item['id'] }}">
                                 <span class="bell-icon {{ $item['kind'] === 'complaint' ? 'is-complaint' : '' }}"><x-icon :name="$item['kind'] === 'complaint' ? 'message-square-text' : 'receipt-text'" /></span>
-                                <span><span class="bell-title">{{ $item['title'] }}</span><span class="bell-detail">{{ $item['detail'] }}</span><span class="bell-date">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j F Y') }}@if($item['is_demo']) · contoh @endif</span></span>
+                                <span><span class="bell-title">{{ $item['title'] }}</span><span class="bell-detail">{{ $item['detail'] }}</span><span class="bell-date">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j F Y') }}</span></span>
                             </a>
                         @empty
                             <p class="bell-empty">Belum ada pengeluaran yang dicatat.</p>
@@ -132,14 +141,17 @@
 
                 <button class="profile-btn" type="button" popovertarget="profile-menu" aria-controls="profile-menu" aria-expanded="false" data-profile-trigger>
                     <span class="avatar" aria-hidden="true">@auth{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}@else<x-icon name="user-round" />@endauth</span>
-                    <span class="profile-name"><strong>{{ auth()->check() ? auth()->user()->name : 'Pengunjung' }}</strong><span>{{ auth()->check() ? 'Perangkat desa' : 'Masyarakat' }}</span></span>
+                    <span class="profile-name"><strong>{{ auth()->check() ? auth()->user()->name : 'Pengunjung' }}</strong><span>{{ $canManage ? 'Perangkat desa' : (auth()->check() ? 'Akses pengelola dicabut' : 'Masyarakat') }}</span></span>
                     <x-icon name="chevron-down" />
                 </button>
                 <div class="profile-menu" id="profile-menu" popover aria-label="Menu akun">
                     <div class="profile-menu-head"><strong>{{ auth()->check() ? auth()->user()->name : 'Akses masyarakat' }}</strong><span>{{ auth()->check() ? auth()->user()->email : 'Melihat data tanpa login.' }}</span></div>
                     @auth
-                        <a class="menu-item" href="{{ route('admin.index', ['year' => $selectedYear]) }}"><x-icon name="database" /> Kelola data</a>
-                        <a class="menu-item" href="{{ route('admin.settings') }}"><x-icon name="settings" /> Pengaturan akun</a>
+                        @if($canManage)
+                            <a class="menu-item" href="{{ route('admin.index', ['year' => $selectedYear]) }}"><x-icon name="gauge" /> Dashboard pengelola</a>
+                            <a class="menu-item" href="{{ route('admin.budgets.index', ['year' => $selectedYear]) }}"><x-icon name="database" /> Pengelolaan data</a>
+                            <a class="menu-item" href="{{ route('admin.settings') }}"><x-icon name="settings" /> Pengaturan akun</a>
+                        @endif
                         <form method="POST" action="{{ route('logout') }}">@csrf<button class="menu-item" type="submit"><x-icon name="log-out" /> Keluar akun</button></form>
                     @else
                         <a class="menu-item" href="{{ route('complaints.create') }}"><x-icon name="message-square-text" /> Kirim pengaduan</a>
@@ -153,7 +165,7 @@
             @if(session('success'))
                 <div class="toast" role="status" data-toast><x-icon name="circle-check" /><span>{{ session('success') }}</span><button class="icon-btn" type="button" data-toast-close aria-label="Tutup pesan"><x-icon name="x" /></button></div>
             @endif
-            @if($errors->any() && ! old('_budget_form'))
+            @if($errors->any() && ! old('_budget_form') && ! old('_dataset_form'))
                 <div class="alert" role="alert" tabindex="-1" data-error-summary><x-icon name="circle-alert" /><div><strong>Ada isian yang perlu diperbaiki.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div></div>
             @endif
 

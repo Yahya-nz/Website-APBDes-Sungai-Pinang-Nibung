@@ -29,8 +29,8 @@
     </form>
 </section>
 
-@if($report['is_demo'])
-    <div class="notice notice-warn" data-reveal><x-icon name="flask-conical" /><p>Realisasi pada laporan ini adalah <strong>data contoh</strong>. Berkas yang diunduh ikut diberi keterangan “CONTOH”.</p></div>
+@if($report['uncounted']['activities'])
+    <div class="notice notice-info" data-reveal><x-icon name="info" /><span><strong>{{ count($report['uncounted']['activities']) }} kegiatan belum diverifikasi</strong> ({{ implode(', ', $report['uncounted']['activities']) }}, anggaran {{ \App\Support\Money::format($report['uncounted']['budget']) }}) tidak dihitung dalam realisasi, sisa anggaran, dan penyerapan.</span></div>
 @endif
 
 <section class="grid grid-4">
@@ -66,7 +66,7 @@
             <thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Keterangan</th><th class="text-right">Nominal</th></tr></thead>
             <tbody>
             @forelse(array_slice($report['transactions'], 0, 40) as $item)
-                <tr style="--row: {{ $loop->index }}"><td data-label="Tanggal" style="white-space: nowrap">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j M Y') }}</td><td class="cell-main"><span class="strong">{{ $item['activity'] }}</span><span class="sub">{{ $item['category'] }}</span></td><td data-label="Keterangan">{{ $item['description'] }}@if($item['is_demo']) <span class="badge badge-demo">contoh</span>@endif</td><td class="text-right amount" data-label="Nominal"><x-money :value="$item['amount']" :decimals="2" /></td></tr>
+                <tr style="--row: {{ $loop->index }}"><td data-label="Tanggal" style="white-space: nowrap">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j M Y') }}</td><td class="cell-main"><span class="strong">{{ $item['activity'] }}</span><span class="sub">{{ $item['category'] }}</span></td><td data-label="Keterangan">{{ $item['description'] }}@unless($item['counted']) <span class="badge badge-gray" title="Kegiatan belum diverifikasi">tidak dihitung</span>@endunless</td><td class="text-right amount" data-label="Nominal"><x-money :value="$item['amount']" :decimals="2" /></td></tr>
             @empty
                 <tr><td colspan="4"><div class="empty"><x-icon name="receipt-text" /><p>Tidak ada pengeluaran pada periode ini.</p></div></td></tr>
             @endforelse

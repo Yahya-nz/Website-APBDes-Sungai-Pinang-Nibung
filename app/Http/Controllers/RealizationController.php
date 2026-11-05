@@ -80,7 +80,7 @@ class RealizationController extends Controller
     private function transactions(int $year, ?int $month): Builder
     {
         return Realization::query()
-            ->with('budgetLine:id,category,description')
+            ->with('budgetLine:id,category,description,verification_status')
             ->whereHas('budgetLine', fn ($query) => $query->where('year', $year))
             ->when($month >= 1 && $month <= 12, fn ($query) => $query->whereMonth('spent_on', $month))
             ->latest('spent_on')->latest('id');

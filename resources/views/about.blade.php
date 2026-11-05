@@ -31,7 +31,7 @@
         </article>
         <article class="card" data-reveal>
             <header class="card-head"><div><h2>Batasan</h2></div></header>
-            <div class="card-body prose"><p>Portal ini bukan pengganti dokumen resmi. Rujukan utama tetap Peraturan Desa tentang APBDes. Data berlabel “contoh” hanya untuk mencoba fitur.</p></div>
+            <div class="card-body prose"><p>Portal ini bukan pengganti dokumen resmi. Rujukan utama tetap Peraturan Desa tentang APBDes. Realisasi, sisa anggaran, dan penyerapan hanya dihitung dari kegiatan yang sudah terverifikasi.</p></div>
         </article>
     </div>
 </section>

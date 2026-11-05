@@ -25,6 +25,16 @@ final class Money
     }
 
     /**
+     * Nominal lengkap dalam rupiah, misalnya 9600000 menjadi "Rp9.600.000,00".
+     */
+    public static function format(string|int|float $amount, int $decimals = 2): string
+    {
+        $value = (float) $amount;
+
+        return ($value < 0 ? '-' : '').'Rp'.number_format(abs($value), $decimals, ',', '.');
+    }
+
+    /**
      * Ringkas nominal besar untuk kartu ringkasan, misalnya 1.800.000.000 menjadi "1,80" miliar.
      *
      * @return array{value: string, unit: string}

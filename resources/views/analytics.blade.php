@@ -11,8 +11,9 @@
         ['name' => 'Belum tersedia', 'amount' => $summary['unavailable_count'], 'color' => '#94A3B8'],
     ])->filter(fn ($item) => $item['amount'] > 0)->map(fn ($item) => $item + ['percentage' => round($item['amount'] / $total * 100, 1)])->values()->all();
     $topActivities = collect($payload['rows'])->where('type', 'expense')->sortByDesc('amount')->take(5);
-    $bestBidang = collect($payload['expense'])->sortByDesc('realization_percent')->first();
-    $lowestBidang = collect($payload['expense'])->sortBy('realization_percent')->first();
+    $measured = collect($payload['expense'])->whereNotNull('realization_percent');
+    $bestBidang = $measured->sortByDesc('realization_percent')->first();
+    $lowestBidang = $measured->sortBy('realization_percent')->first();
 @endphp
 <div class="page-head" data-reveal>
     <div>
@@ -71,7 +72,7 @@
             <div class="progress-item">
                 <div class="progress-item-head"><strong>{{ $row['description'] }}</strong><span class="amount"><x-money :value="$row['amount']" /></span></div>
                 <x-progress :value="$row['amount'] / max($topActivities->max('amount'), 1) * 100" color="blue" :label="$row['description']" />
-                <div class="progress-item-foot"><span>{{ $row['category'] }} · {{ $row['funding_source'] }}</span><span>{{ number_format($row['amount'] / max($summary['expense'], 1) * 100, 1, ',', '.') }}% belanja · realisasi {{ number_format($row['realization_percent'] ?? 0, 0, ',', '.') }}%</span></div>
+                <div class="progress-item-foot"><span>{{ $row['category'] }} · {{ $row['funding_source'] }}</span><span>{{ number_format($row['amount'] / max($summary['expense'], 1) * 100, 1, ',', '.') }}% belanja · {{ $row['realization_counted'] ? 'realisasi '.number_format($row['realization_percent'] ?? 0, 0, ',', '.').'%' : 'realisasi belum dihitung' }}</span></div>
             </div>
         @endforeach
     </div>

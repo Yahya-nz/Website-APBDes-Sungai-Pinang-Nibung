@@ -16,12 +16,10 @@
     <div class="page-actions"><a class="btn btn-secondary" href="{{ route('analytics', ['year' => $payload['year']]) }}"><x-icon name="chart-pie" /> Grafik & Analisis</a><a class="btn btn-primary" href="{{ route('reports.index', ['year' => $payload['year']]) }}"><x-icon name="file-text" /> Unduh laporan</a></div>
 </div>
 
-@if($payload['realization_is_demo'])
-    <div class="notice notice-warn" data-reveal><x-icon name="flask-conical" /><p><strong>Realisasi di halaman ini adalah data contoh</strong> untuk mencoba fitur monitoring. Anggaran (rencana) tetap angka asli dari baliho APBDes.</p></div>
-@endif
+<x-uncounted-note :summary="$summary" data-reveal />
 
 <section class="grid grid-4">
-    <article class="card kpi kpi-blue" data-reveal><span class="kpi-icon"><x-icon name="shopping-cart" /></span><div><span class="kpi-label">Rencana belanja</span><p class="kpi-value">@if($summary['expense_count'])<x-money :value="$summary['expense']" :decimals="2" />@else Belum tersedia @endif</p></div></article>
+    <article class="card kpi kpi-blue" data-reveal><span class="kpi-icon"><x-icon name="shopping-cart" /></span><div><span class="kpi-label">{{ $summary['uncounted_lines'] ? 'Anggaran terverifikasi' : 'Rencana belanja' }}</span><p class="kpi-value">@if($summary['expense_count'])<x-money :value="$summary['counted_budget']" :decimals="2" />@else Belum tersedia @endif</p></div></article>
     <article class="card kpi kpi-purple" data-reveal><span class="kpi-icon"><x-icon name="chart-no-axes-column-increasing" /></span><div><span class="kpi-label">Realisasi</span><p class="kpi-value">@if($summary['realization'] !== null)<x-money :value="$summary['realization']" :decimals="2" />@else Belum tersedia @endif</p></div></article>
     <article class="card kpi kpi-green" data-reveal><span class="kpi-icon"><x-icon name="wallet" /></span><div><span class="kpi-label">Sisa anggaran</span><p class="kpi-value">@if($summary['remaining'] !== null)<x-money :value="$summary['remaining']" :decimals="2" />@else Belum tersedia @endif</p></div></article>
     <article class="card kpi kpi-amber" data-reveal><span class="kpi-icon"><x-icon name="gauge" /></span><div><span class="kpi-label">Penyerapan</span><p class="kpi-value">{{ $summary['absorption'] !== null ? number_format($summary['absorption'], 1, ',', '.').'%' : 'Belum tersedia' }}</p><x-progress :value="$summary['absorption'] ?? 0" color="amber" size="lg" label="Penyerapan anggaran" /></div></article>
@@ -40,7 +38,7 @@
                 <div class="progress-item">
                     <div class="progress-item-head"><strong>{{ $item['name'] }}</strong><span class="num">{{ number_format($percent, 1, ',', '.') }}%</span></div>
                     <x-progress :value="$percent" :color="$percent >= 100 ? 'green' : ($percent >= 60 ? 'blue' : 'amber')" size="lg" :label="'Realisasi '.$item['name']" />
-                    <div class="progress-item-foot"><span><x-money :value="$item['realization']" /> dari <x-money :value="$item['amount']" /></span><span>Sisa <x-money :value="$item['amount'] - $item['realization']" /></span></div>
+                    <div class="progress-item-foot"><span><x-money :value="$item['realization']" /> dari <x-money :value="$item['counted_amount']" />{{ $item['uncounted_lines'] ? ' (terverifikasi)' : '' }}</span><span>Sisa <x-money :value="$item['counted_amount'] - $item['realization']" /></span></div>
                 </div>
             @endforeach
         </div>
@@ -58,7 +56,7 @@
                     <tr style="--row: {{ $loop->index }}">
                         <td class="cell-main"><span class="strong">{{ $row['description'] }}</span><span class="sub">{{ $row['category'] }}</span></td>
                         <td class="text-right amount" data-label="Anggaran"><x-money :value="$row['amount']" /></td>
-                        <td data-label="Realisasi"><div class="mini-progress"><x-progress :value="$row['realization_percent'] ?? 0" :color="($row['realization_percent'] ?? 0) >= 100 ? 'green' : 'blue'" :label="'Realisasi '.$row['description']" /><span>{{ number_format($row['realization_percent'] ?? 0, 0, ',', '.') }}%</span></div></td>
+                        <td data-label="Realisasi"><x-realization-cell :row="$row" /></td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -73,7 +71,7 @@
         @forelse($transactions as $item)
             <div class="list-row">
                 <span class="list-icon"><x-icon name="receipt-text" /></span>
-                <div><p class="list-title">{{ $item->budgetLine?->description }}</p><p class="list-meta">{{ $item->spent_on->translatedFormat('j M Y') }} · {{ $item->description }}@if($item->is_demo) · <span class="badge badge-demo">contoh</span>@endif</p></div>
+                <div><p class="list-title">{{ $item->budgetLine?->description }}</p><p class="list-meta">{{ $item->spent_on->translatedFormat('j M Y') }} · {{ $item->description }}@if($item->budgetLine && $item->budgetLine->verification_status !== 'verified') · <span class="badge badge-gray" title="Kegiatan belum diverifikasi">tidak dihitung</span>@endif</p></div>
                 <span class="amount num"><x-money :value="$item->amount" /></span>
             </div>
         @empty

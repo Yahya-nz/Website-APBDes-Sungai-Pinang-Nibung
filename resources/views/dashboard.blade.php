@@ -26,8 +26,8 @@
 
 @if(! $hasData)
     <div class="notice notice-info" data-reveal><x-icon name="info" /><p>Data APBDes tahun {{ $payload['year'] }} belum dimasukkan. Total pendapatan, belanja, dan realisasi: Belum tersedia.@if($latestYear) <a href="{{ route('dashboard', ['year' => $latestYear]) }}">Lihat tahun {{ $latestYear }}</a>.@endif</p></div>
-@elseif($payload['realization_is_demo'])
-    <div class="notice notice-warn" data-reveal><x-icon name="flask-conical" /><p><strong>Angka anggaran asli dari baliho APBDes {{ $payload['year'] }}.</strong> Transaksi realisasi masih data contoh untuk mencoba fitur monitoring, bukan data resmi desa.</p></div>
+@else
+    <x-uncounted-note :summary="$summary" data-reveal />
 @endif
 
 <section class="grid grid-4" aria-label="Ringkasan anggaran">
@@ -90,7 +90,7 @@
 @if($summary['remaining'] !== null)
 <section class="card" data-reveal style="margin-bottom: 20px">
     <div class="stat-row cols-4">
-        <div class="stat"><span>Rencana belanja</span><strong><x-money :value="$summary['expense']" :decimals="2" /></strong></div>
+        <div class="stat"><span>{{ $summary['uncounted_lines'] ? 'Anggaran terverifikasi' : 'Rencana belanja' }}</span><strong><x-money :value="$summary['counted_budget']" :decimals="2" /></strong></div>
         <div class="stat"><span>Sudah direalisasikan</span><strong style="color: #7c3aed"><x-money :value="$summary['realization']" :decimals="2" /></strong></div>
         <div class="stat"><span>Sisa anggaran</span><strong style="color: var(--green)"><x-money :value="$summary['remaining']" :decimals="2" /></strong></div>
         <div class="stat"><span>Transaksi tercatat</span><strong>{{ $summary['transactions'] }} pengeluaran</strong></div>
@@ -165,7 +165,7 @@
                 <a class="progress-item" href="{{ route('budgets.index', ['type' => 'expense', 'category' => $item['name'], 'year' => $payload['year']]) }}">
                     <div class="progress-item-head"><strong>{{ $item['name'] }}</strong><span class="num">{{ number_format($percent, 1, ',', '.') }}%</span></div>
                     <x-progress :value="$percent" :color="$percent >= 100 ? 'green' : ($percent >= 60 ? 'blue' : 'amber')" :label="'Realisasi '.$item['name']" />
-                    <div class="progress-item-foot"><span>Realisasi <x-money :value="$item['realization']" /></span><span>Anggaran <x-money :value="$item['amount']" /></span></div>
+                    <div class="progress-item-foot"><span>Realisasi <x-money :value="$item['realization']" /></span><span>Anggaran{{ $item['uncounted_lines'] ? ' terverifikasi' : '' }} <x-money :value="$item['counted_amount']" /></span></div>
                 </a>
             @endforeach
         </div>
@@ -175,7 +175,7 @@
         @forelse($payload['latest_realizations'] as $item)
             <div class="list-row">
                 <span class="list-icon"><x-icon name="receipt-text" /></span>
-                <div><p class="list-title">{{ $item['activity'] }}</p><p class="list-meta">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j M Y') }} · {{ $item['description'] }}@if($item['is_demo']) · <span class="badge badge-demo">contoh</span>@endif</p></div>
+                <div><p class="list-title">{{ $item['activity'] }}</p><p class="list-meta">{{ \Carbon\Carbon::parse($item['date'])->translatedFormat('j M Y') }} · {{ $item['description'] }}@unless($item['counted']) · <span class="badge badge-gray" title="Kegiatan belum diverifikasi">tidak dihitung</span>@endunless</p></div>
                 <span class="amount num"><x-money :value="$item['amount']" /></span>
             </div>
         @empty

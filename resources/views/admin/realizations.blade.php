@@ -12,6 +12,8 @@
     <div class="page-actions"><a class="btn btn-secondary" href="{{ route('realizations.index', ['year' => $payload['year']]) }}"><x-icon name="eye" /> Lihat halaman publik</a></div>
 </div>
 
+<x-uncounted-note :summary="$summary" data-reveal />
+
 <section class="grid grid-5-7">
     <article class="card" data-reveal>
         <header class="card-head"><div><h2>Pengeluaran baru</h2><p>Isi sesuai kuitansi atau bukti pembayaran.</p></div></header>
@@ -25,7 +27,7 @@
                         <optgroup label="{{ $category }}">
                             @foreach($items as $activity)
                                 @php $row = $rows->get($activity->id); @endphp
-                                <option value="{{ $activity->id }}" @selected((int) old('budget_line_id') === $activity->id)>{{ $activity->description }} — sisa Rp{{ number_format((float) $activity->amount - ($row['realization'] ?? 0), 0, ',', '.') }}</option>
+                                <option value="{{ $activity->id }}" @selected((int) old('budget_line_id') === $activity->id)>{{ $activity->description }} — sisa Rp{{ number_format((float) $activity->amount - ($row['spent'] ?? 0), 0, ',', '.') }}</option>
                             @endforeach
                         </optgroup>
                     @endforeach
@@ -37,13 +39,12 @@
                 <div class="field"><label for="realization-amount">Nominal (Rp)</label><input class="input" id="realization-amount" type="number" name="amount" min="1" step="0.01" inputmode="decimal" value="{{ old('amount') }}" required data-money-preview><span class="money-preview" data-money-output></span>@error('amount')<span class="field-error">{{ $message }}</span>@enderror</div>
             </div>
             <div class="field"><label for="realization-description">Keterangan</label><input class="input" id="realization-description" name="description" maxlength="255" value="{{ old('description') }}" required placeholder="Misalnya: Pembayaran termin 1 pembangunan jalan"></div>
-            <label class="check"><input type="checkbox" name="is_demo" value="1" @checked(old('is_demo'))><span>Tandai sebagai data contoh</span></label>
             <div class="form-actions"><span class="hint">Tercatat atas nama {{ auth()->user()->name }}</span><button class="btn btn-primary" type="submit"><x-icon name="check" /> Simpan pengeluaran</button></div>
         </form>
     </article>
 
     <article class="card" data-reveal>
-        <header class="card-head"><div><h2>Pengeluaran tercatat</h2><p>{{ $transactions->total() }} transaksi · total <x-money :value="$summary['realization'] ?? 0" /> ({{ number_format($summary['absorption'] ?? 0, 1, ',', '.') }}% anggaran)</p></div></header>
+        <header class="card-head"><div><h2>Pengeluaran tercatat</h2><p>{{ $transactions->total() }} transaksi · realisasi terhitung <x-money :value="$summary['realization'] ?? 0" /> ({{ number_format($summary['absorption'] ?? 0, 1, ',', '.') }}% anggaran terverifikasi)</p></div></header>
         <div class="table-wrap">
             <table class="table stack">
                 <thead><tr><th>Tanggal</th><th>Kegiatan</th><th class="text-right">Nominal</th><th><span class="sr-only">Aksi</span></th></tr></thead>
@@ -51,7 +52,7 @@
                 @forelse($transactions as $item)
                     <tr style="--row: {{ $loop->index }}">
                         <td data-label="Tanggal">{{ $item->spent_on->translatedFormat('j M Y') }}</td>
-                        <td class="cell-main"><span class="strong">{{ $item->budgetLine?->description }}</span><span class="sub">{{ $item->description }}@if($item->is_demo) · <span class="badge badge-demo">contoh</span>@endif</span></td>
+                        <td class="cell-main"><span class="strong">{{ $item->budgetLine?->description }}</span><span class="sub">{{ $item->description }}@if($item->budgetLine && $item->budgetLine->verification_status !== 'verified') · <span class="badge badge-gray" title="Kegiatan belum diverifikasi">tidak dihitung</span>@endif</span></td>
                         <td class="text-right amount" data-label="Nominal"><x-money :value="$item->amount" :decimals="2" /></td>
                         <td class="cell-actions" style="text-align: right"><form method="POST" action="{{ route('admin.realizations.destroy', $item) }}" data-confirm="Catatan pengeluaran Rp{{ number_format((float) $item->amount, 0, ',', '.') }} untuk {{ $item->budgetLine?->description }} akan dihapus.">@csrf @method('DELETE')<button class="icon-btn icon-btn-danger" type="submit" aria-label="Hapus pengeluaran" title="Hapus"><x-icon name="trash-2" /></button></form></td>
                     </tr>

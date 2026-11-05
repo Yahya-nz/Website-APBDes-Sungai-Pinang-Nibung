@@ -65,8 +65,8 @@ class DashboardControllerTest extends TestCase
 
     public function test_recorded_spending_produces_consistent_indicators(): void
     {
-        $first = BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00']);
-        BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00']);
+        $first = BudgetLine::factory()->verified()->create(['type' => 'expense', 'amount' => '1000.00']);
+        BudgetLine::factory()->verified()->create(['type' => 'expense', 'amount' => '1000.00']);
         Realization::factory()->create(['budget_line_id' => $first->id, 'amount' => '200.00']);
         Realization::factory()->create(['budget_line_id' => $first->id, 'amount' => '300.00']);
 
@@ -82,15 +82,33 @@ class DashboardControllerTest extends TestCase
         $response->assertSeeText('Sisa anggaran')->assertSeeText('Rp1.500,00');
     }
 
-    public function test_demo_realization_is_labelled_as_example_data(): void
+    public function test_spending_on_unverified_activities_is_left_out_of_realization_and_absorption(): void
     {
-        $line = BudgetLine::factory()->create(['type' => 'expense', 'amount' => '1000.00']);
-        Realization::factory()->demo()->create(['budget_line_id' => $line->id, 'amount' => '100.00']);
+        $verified = BudgetLine::factory()->verified()->create(['type' => 'expense', 'category' => 'Pembangunan', 'description' => 'Jalan terverifikasi', 'amount' => '1000.00']);
+        $unverified = BudgetLine::factory()->create(['type' => 'expense', 'category' => 'Pembangunan', 'description' => 'Insentif belum dicek', 'amount' => '1000.00']);
+        Realization::factory()->create(['budget_line_id' => $verified->id, 'amount' => '500.00', 'spent_on' => '2026-03-15']);
+        Realization::factory()->demo()->create(['budget_line_id' => $unverified->id, 'amount' => '200.00', 'spent_on' => '2026-03-20']);
 
-        $response = $this->get(route('dashboard'));
+        $response = $this->get(route('dashboard', ['year' => 2026]));
 
-        $response->assertOk()->assertSeeText('Transaksi realisasi masih data contoh');
-        $this->assertTrue($response->viewData('payload')['realization_is_demo']);
+        $response->assertOk()
+            ->assertSeeText('1 kegiatan belum diverifikasi')
+            ->assertSeeText('tidak dihitung')
+            ->assertDontSeeText('contoh');
+        $payload = $response->viewData('payload');
+        $this->assertSame(500.00, $payload['summary']['realization']);
+        $this->assertSame(50.00, $payload['summary']['absorption']);
+        $this->assertSame(500.00, $payload['summary']['remaining']);
+        $this->assertSame(1000.00, $payload['summary']['counted_budget']);
+        $this->assertSame(1, $payload['summary']['transactions']);
+        $this->assertSame(200.00, $payload['summary']['uncounted_spent']);
+        $this->assertSame(['counted_amount' => 1000.0, 'realization' => 500.0, 'realization_percent' => 50.0], collect($payload['expense'][0])->only(['counted_amount', 'realization', 'realization_percent'])->all());
+        $this->assertSame(500.0, $payload['monthly'][2]['realized']);
+        $row = collect($payload['rows'])->firstWhere('description', 'Insentif belum dicek');
+        $this->assertNull($row['realization']);
+        $this->assertNull($row['realization_percent']);
+        $this->assertSame(200.0, $row['spent']);
+        $this->get(route('budgets.index', ['type' => 'expense', 'year' => 2026]))->assertOk()->assertSeeText('Belum dihitung');
     }
 
     public function test_budget_descriptions_are_escaped_in_public_html(): void
@@ -167,7 +185,7 @@ class DashboardControllerTest extends TestCase
 
     public function test_zero_budget_with_spending_keeps_zero_remaining_without_inventing_a_percentage(): void
     {
-        $line = BudgetLine::factory()->create(['type' => 'expense', 'amount' => '0.00']);
+        $line = BudgetLine::factory()->verified()->create(['type' => 'expense', 'amount' => '0.00']);
         Realization::factory()->create(['budget_line_id' => $line->id, 'amount' => '0.00']);
 
         $response = $this->get(route('dashboard'));

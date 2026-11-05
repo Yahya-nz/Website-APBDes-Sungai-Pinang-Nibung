@@ -54,16 +54,16 @@ class DashboardController extends Controller
         return response()->streamDownload(function () use ($payload): void {
             $stream = fopen('php://output', 'w');
             fwrite($stream, "\xEF\xBB\xBF");
-            fputcsv($stream, ['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'realization', 'source', 'verification_status', 'source_date', 'is_demo'], ',', '"', '');
+            fputcsv($stream, ['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'realization', 'source', 'verification_status', 'source_date'], ',', '"', '');
             foreach ($payload['rows'] as $row) {
                 $cells = [];
-                foreach (['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'realization', 'source', 'verification_status', 'source_date', 'is_demo'] as $key) {
+                foreach (['year', 'type', 'category', 'sub_category', 'description', 'volume', 'amount', 'funding_source', 'realization', 'source', 'verification_status', 'source_date'] as $key) {
                     $value = (string) ($row[$key] ?? '');
                     $cells[] = preg_match('/^[=+@\-\t\r\n]/', $value) ? "'".$value : $value;
                 } fputcsv($stream, $cells, ',', '"', '');
             }
             fclose($stream);
-        }, 'apbdes-'.$payload['year'].($payload['is_demo'] ? '-DEMO' : '').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'no-store']);
+        }, 'apbdes-'.$payload['year'].'.csv', ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'no-store']);
     }
 
     public function template(): StreamedResponse
@@ -72,7 +72,7 @@ class DashboardController extends Controller
             $stream = fopen('php://output', 'w');
             fwrite($stream, "\xEF\xBB\xBF");
             fputcsv($stream, BudgetImporter::HEADERS, ',', '"', '');
-            fputcsv($stream, [2026, 'expense', 'Pelaksanaan Pembangunan Desa', 'Kesehatan', 'Uraian contoh — ganti dengan data Anda', '12 bulan', 1000000, 'Dana Desa', 'Dokumen sumber Anda', 'unverified', '2026-11-03'], ',', '"', '');
+            fputcsv($stream, [2026, 'expense', 'Pelaksanaan Pembangunan Desa', 'Kesehatan', 'Nama kegiatan — ganti dengan data Anda', '12 bulan', 1000000, 'Dana Desa', 'Dokumen sumber Anda', 'unverified', '2026-11-03'], ',', '"', '');
             fclose($stream);
         }, 'template-apbdes.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

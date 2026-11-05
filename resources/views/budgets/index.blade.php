@@ -78,14 +78,14 @@
                     @endif
                     @foreach($subItems as $row)
                         <tr style="--row: {{ $loop->index }}">
-                            <td class="cell-main"><span class="strong">{{ $search->highlight($row['description']) }}</span><span class="sub">{{ $search->highlight($row['type'] === 'income' ? 'Pendapatan' : $row['category']) }}@if($row['is_demo']) · <span class="badge badge-demo">contoh</span>@endif</span></td>
+                            <td class="cell-main"><span class="strong">{{ $search->highlight($row['description']) }}</span><span class="sub">{{ $search->highlight($row['type'] === 'income' ? 'Pendapatan' : $row['category']) }}</span></td>
                             @if($type !== 'income')
                                 <td data-label="Volume">{{ $row['volume'] ?? '–' }}</td>
                                 <td data-label="Sumber dana">@if($row['funding_source'])<span class="badge badge-blue">{{ $search->highlight($row['funding_source']) }}</span>@else – @endif</td>
                             @endif
                             <td class="text-right amount" data-label="Anggaran"><x-money :value="$row['amount']" :decimals="2" /></td>
                             @if($type !== 'income')
-                                <td data-label="Realisasi">@if($row['type'] === 'expense')<div class="mini-progress"><x-progress :value="$row['realization_percent'] ?? 0" :color="($row['realization_percent'] ?? 0) >= 100 ? 'green' : 'blue'" :label="'Realisasi '.$row['description']" /><span>{{ number_format($row['realization_percent'] ?? 0, 0, ',', '.') }}%</span></div>@else – @endif</td>
+                                <td data-label="Realisasi">@if($row['type'] === 'expense')<x-realization-cell :row="$row" />@else – @endif</td>
                             @else
                                 <td class="text-right" data-label="Persentase">{{ $summary['income'] > 0 ? number_format($row['amount'] / $summary['income'] * 100, 1, ',', '.') : 0 }}%</td>
                             @endif

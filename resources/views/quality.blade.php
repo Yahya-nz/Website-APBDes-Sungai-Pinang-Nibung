@@ -57,7 +57,7 @@
         @empty
             <div class="empty"><x-icon name="folder-open" /><p>Belum ada dataset.</p></div>
         @endforelse
-        <footer class="card-foot" style="display: block; line-height: 1.6">Status terverifikasi berarti angka sudah dicocokkan pengelola dengan dokumennya, bukan hasil audit. Realisasi contoh tidak dihitung sebagai data resmi.</footer>
+        <footer class="card-foot" style="display: block; line-height: 1.6">Status terverifikasi berarti angka sudah dicocokkan pengelola dengan dokumennya, bukan hasil audit. Realisasi, sisa anggaran, dan penyerapan hanya dihitung dari kegiatan yang sudah terverifikasi.</footer>
     </article>
 </section>
 @endsection
