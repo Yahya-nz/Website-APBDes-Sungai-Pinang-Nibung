@@ -31,8 +31,7 @@ Untuk masyarakat (tanpa login):
   tiket untuk melihat tanggapan. Dilindungi pembatas kiriman dan jebakan bot.
 - Pencarian kegiatan (tekan `/`): semua kata harus cocok, hasil diurutkan
   dari yang paling relevan, kata kunci ditandai.
-- Status verifikasi data, termasuk pemeriksaan otomatis kecocokan belanja per
-  sumber dana dengan pendapatannya.
+- Status verifikasi data beserta sumber datasetnya.
 
 Untuk perangkat desa (login):
 
@@ -69,11 +68,6 @@ Untuk perangkat desa (login):
   sudah terverifikasi. Kegiatan yang belum diverifikasi tetap tampil dengan
   label statusnya dan keterangan "belum dihitung", termasuk di laporan PDF dan
   Excel.
-- Pemeriksaan otomatis menemukan belanja bersumber Dana Desa
-  Rp290.867.000 (pendapatan DD Rp281.267.000) dan ADD Rp243.406.000
-  (pendapatan ADD Rp253.006.000). Selisih Rp9.600.000 sama dengan Insentif RT,
-  jadi baris itu ditandai belum diverifikasi sampai dicek ke dokumen APBDes
-  dan realisasinya belum ikut dihitung.
 
 ## Teknologi
 

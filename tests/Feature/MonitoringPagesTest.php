@@ -51,11 +51,16 @@ class MonitoringPagesTest extends TestCase
         $this->get(route('budgets.index', ['type' => 'expense']))->assertOk()->assertSeeText('Pembuatan sumur bor')->assertSeeText('12 unit');
     }
 
-    public function test_quality_page_flags_the_funding_source_mismatch_from_the_baliho(): void
+    public function test_public_quality_page_shows_status_counts_without_internal_funding_checks(): void
     {
         $this->seed();
 
-        $this->get(route('quality'))->assertOk()->assertSeeText('Perlu dicek')->assertSeeText('Insentif RT');
+        $this->get(route('quality'))->assertOk()
+            ->assertSeeText('Status Verifikasi Data')
+            ->assertSeeText('APBDes 2026 dari baliho desa')
+            ->assertDontSeeText('Pemeriksaan otomatis sumber dana')
+            ->assertDontSeeText('Insentif RT')
+            ->assertDontSeeText('Rp9.600.000');
     }
 
     public function test_notification_feed_lists_latest_spending_and_new_complaints_only_for_officials(): void
