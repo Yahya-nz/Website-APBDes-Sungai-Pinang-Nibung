@@ -31,7 +31,7 @@
         </article>
         <article class="card" data-reveal>
             <header class="card-head"><div><h2>Batasan</h2></div></header>
-            <div class="card-body prose"><p>Portal ini bukan pengganti dokumen resmi. Rujukan utama tetap Peraturan Desa tentang APBDes. Realisasi, sisa anggaran, dan penyerapan hanya dihitung dari kegiatan yang sudah terverifikasi.</p></div>
+            <div class="card-body prose"><p>Portal ini bukan pengganti dokumen resmi. Rujukan utama tetap Peraturan Desa tentang APBDes. Realisasi, sisa anggaran, dan penyerapan hanya dihitung dari kegiatan yang sudah terverifikasi.</p><p>Kode sumber website ini: <a class="link" href="https://github.com/Yahya-nz/Website-APBDes-Sungai-Pinang-Nibung" target="_blank" rel="noopener">github.com/Yahya-nz/Website-APBDes-Sungai-Pinang-Nibung</a></p></div>
         </article>
     </div>
 </section>

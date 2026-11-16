@@ -6,6 +6,8 @@ mengikuti mockup pada proposal capstone, dan angka anggarannya disalin dari
 baliho APBDes 2026 desa (pendapatan dan belanja masing-masing
 Rp549.108.437,83).
 
+Kode sumber: https://github.com/Yahya-nz/Website-APBDes-Sungai-Pinang-Nibung
+
 ![Dashboard](docs/screenshots/01-dashboard.jpg)
 
 ## Fitur
