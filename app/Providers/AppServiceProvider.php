@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by(Str::lower(is_string($email) ? $email : 'invalid').'|'.$request->ip());
         });
         RateLimiter::for('complaints', fn (Request $request): Limit => Limit::perHour(5)->by($request->ip()));
+        RateLimiter::for('complaint-recovery', fn (Request $request): Limit => Limit::perMinutes(10, 5)->by($request->ip()));
         View::composer('layouts.app', function ($view): void {
             $view->with('notificationFeed', NotificationFeed::for(request()->user()));
         });

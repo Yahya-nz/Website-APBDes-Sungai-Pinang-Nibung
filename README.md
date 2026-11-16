@@ -28,7 +28,11 @@ Untuk masyarakat (tanpa login):
 - Notifikasi pengeluaran baru lewat ikon lonceng. Penanda belum dibaca
   disimpan di perangkat, dan daftar diperbarui otomatis setiap menit.
 - Pengaduan, pertanyaan, dan saran warga tanpa akun. Warga mendapat nomor
-  tiket untuk melihat tanggapan. Dilindungi pembatas kiriman dan jebakan bot.
+  tiket untuk melihat tanggapan, bisa mengunduh bukti tiket, dan tiketnya
+  tersimpan di daftar "Tiket saya" pada perangkat itu (bisa disaring per
+  status dan jenis pesan). Bila nomor tiket hilang, tiket dipulihkan dengan
+  No. HP/email dan PIN yang diisi saat mengirim. Dilindungi pembatas kiriman,
+  pembatas percobaan pemulihan, dan jebakan bot.
 - Pencarian kegiatan (tekan `/`): semua kata harus cocok, hasil diurutkan
   dari yang paling relevan, kata kunci ditandai.
 - Status verifikasi data beserta sumber datasetnya.
@@ -154,5 +158,6 @@ Nominal ditulis tanpa Rp dan tanpa titik ribuan, misalnya `25000000`.
 ![Verifikasi beberapa baris](docs/screenshots/27-verifikasi-massal.jpg)
 ![Pengguna dan hak akses](docs/screenshots/28-pengguna.jpg)
 ![Riwayat aktivitas](docs/screenshots/29-riwayat-aktivitas.jpg)
+![Tiket saya dan pemulihan tiket](docs/screenshots/30-tiket-saya-pemulihan.jpg)
 
 </details>

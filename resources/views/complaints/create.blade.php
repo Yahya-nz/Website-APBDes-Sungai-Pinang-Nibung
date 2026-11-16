@@ -39,7 +39,13 @@
             </div>
             <div class="form-grid">
                 <div class="field"><label for="complaint-name">Nama <span class="optional">opsional</span></label><input class="input" id="complaint-name" name="name" maxlength="100" value="{{ old('name') }}" placeholder="Boleh dikosongkan"></div>
-                <div class="field"><label for="complaint-contact">No. HP / email <span class="optional">opsional</span></label><input class="input" id="complaint-contact" name="contact" maxlength="100" value="{{ old('contact') }}" placeholder="Hanya dilihat perangkat desa"></div>
+                <div class="field"><label for="complaint-contact">No. HP / email <span class="optional">opsional</span></label><input class="input" id="complaint-contact" name="contact" maxlength="100" value="{{ old('contact') }}" placeholder="Hanya dilihat perangkat desa">@error('contact')<span class="field-error">{{ $message }}</span>@enderror</div>
+                <div class="field span-2">
+                    <label for="complaint-pin">PIN pemulihan tiket <span class="optional">opsional, 4–6 angka</span></label>
+                    <input class="input" id="complaint-pin" name="recovery_pin" inputmode="numeric" pattern="[0-9]{4,6}" minlength="4" maxlength="6" autocomplete="off" placeholder="Misalnya 4 angka yang mudah Anda ingat" style="max-width: 280px">
+                    <span class="hint">Isi bersama No. HP / email. Bila nomor tiket hilang, tiket bisa dipulihkan di halaman cek status dengan kontak dan PIN ini.</span>
+                    @error('recovery_pin')<span class="field-error">{{ $message }}</span>@enderror
+                </div>
             </div>
             <div class="honeypot" aria-hidden="true"><label for="complaint-website">Jangan diisi</label><input id="complaint-website" name="website" tabindex="-1" autocomplete="off"></div>
             <div class="form-actions"><span class="hint">Nama dan kontak tidak ditampilkan ke publik.</span><button class="btn btn-primary" type="submit"><x-icon name="send" /> Kirim pesan</button></div>
@@ -52,6 +58,7 @@
                 <label class="sr-only" for="ticket">Nomor tiket</label>
                 <input class="input" id="ticket" name="tiket" placeholder="Contoh: ADU-2611-H8NT" required style="text-transform: uppercase; letter-spacing: 1px">
                 <button class="btn btn-secondary" type="submit"><x-icon name="search" /> Cek status</button>
+                <a class="link" href="{{ route('complaints.show') }}#pulihkan">Lupa nomor tiket? Pulihkan di sini <x-icon name="arrow-right" /></a>
             </form>
         </article>
         <article class="card" data-reveal>

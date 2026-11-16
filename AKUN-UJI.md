@@ -26,6 +26,16 @@ Realisasi, sisa anggaran, dan penyerapan hanya dihitung dari kegiatan yang
 sudah terverifikasi. Coba ubah status baris "Insentif RT" untuk melihat
 angkanya berubah di dashboard.
 
+## Mencoba pemulihan tiket pengaduan (tanpa login)
+
+1. Buka menu **Pengaduan Warga**, lalu klik **Lupa nomor tiket? Pulihkan di sini**.
+2. Isi No. HP `0812-0000-1111` (boleh ditulis `+62 812 0000 1111`) dan PIN `1234`.
+3. Tiket `ADU-2609-K7QM` muncul di daftar **Tiket saya**. Coba saring dengan
+   tab status (Baru, Diproses, Selesai) dan pilihan jenis pesan.
+
+Saat mengirim pesan baru, isi No. HP / email dan PIN pemulihan agar tiketnya
+bisa dipulihkan dengan cara yang sama.
+
 ## Catatan
 
 - Ganti kata sandi di menu **Pengaturan** sebelum portal dipakai di luar

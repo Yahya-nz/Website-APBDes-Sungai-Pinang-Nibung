@@ -25,6 +25,9 @@ Route::get('/laporan/unduh/{format}', [ReportController::class, 'download'])->mi
 Route::get('/pengaduan', [ComplaintController::class, 'create'])->name('complaints.create');
 Route::post('/pengaduan', [ComplaintController::class, 'store'])->middleware('throttle:complaints')->name('complaints.store');
 Route::get('/pengaduan/cek', [ComplaintController::class, 'show'])->name('complaints.show');
+Route::get('/pengaduan/cek/bukti', [ComplaintController::class, 'receipt'])->name('complaints.receipt');
+Route::post('/pengaduan/pulihkan', [ComplaintController::class, 'recover'])->middleware('throttle:complaint-recovery')->name('complaints.recover');
+Route::delete('/pengaduan/tersimpan/{ticket}', [ComplaintController::class, 'forget'])->where('ticket', 'ADU-[0-9]{4}-[A-Za-z0-9]{4}')->name('complaints.forget');
 Route::get('/kualitas-data', [DashboardController::class, 'quality'])->name('quality');
 Route::get('/tentang', [DashboardController::class, 'about'])->name('about');
 Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications');

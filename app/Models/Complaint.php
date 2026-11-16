@@ -19,11 +19,34 @@ class Complaint extends Model
 
     public const STATUSES = ['new' => 'Baru', 'in_progress' => 'Diproses', 'resolved' => 'Selesai'];
 
-    protected $fillable = ['ticket', 'name', 'contact', 'topic', 'budget_line_id', 'message', 'status', 'response', 'responded_at', 'responded_by', 'is_demo'];
+    protected $fillable = ['ticket', 'name', 'contact', 'contact_key', 'recovery_pin', 'topic', 'budget_line_id', 'message', 'status', 'response', 'responded_at', 'responded_by', 'is_demo'];
+
+    protected $hidden = ['recovery_pin'];
 
     protected function casts(): array
     {
-        return ['responded_at' => 'datetime', 'is_demo' => 'boolean'];
+        return ['responded_at' => 'datetime', 'is_demo' => 'boolean', 'recovery_pin' => 'hashed'];
+    }
+
+    /**
+     * Bentuk baku kontak untuk pencocokan pemulihan tiket: email huruf kecil, nomor HP angka saja
+     * dengan awalan 62 diubah menjadi 0 (misalnya +62 812-3456 menjadi 08123456).
+     */
+    public static function contactKey(?string $contact): ?string
+    {
+        $contact = trim((string) $contact);
+        if ($contact === '') {
+            return null;
+        }
+        if (str_contains($contact, '@')) {
+            return mb_strtolower($contact);
+        }
+        $digits = preg_replace('/\D+/', '', $contact) ?? '';
+        if (str_starts_with($digits, '62')) {
+            $digits = '0'.substr($digits, 2);
+        }
+
+        return $digits !== '' ? $digits : mb_strtolower($contact);
     }
 
     public function budgetLine(): BelongsTo

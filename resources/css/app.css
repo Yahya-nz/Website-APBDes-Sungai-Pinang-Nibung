@@ -507,6 +507,8 @@ a.list-row:hover .list-title { color: var(--blue); }
 .table td.cell-actions { text-align: right; }
 .user-cell { display: flex; align-items: center; gap: 12px; }
 .timeline-page { margin-top: 16px; }
+a.list-title { display: block; }
+a.list-title:hover { color: var(--blue); }
 
 /* ---------- Login & error ---------- */
 .guest { margin: 0; background: #fff; }
@@ -646,6 +648,8 @@ a.list-row:hover .list-title { color: var(--blue); }
     .status-pills, .shortcuts { grid-template-columns: minmax(0, 1fr); }
     .list-row.task { grid-template-columns: 40px minmax(0, 1fr); }
     .list-row.task > .btn { grid-column: 2; justify-self: start; }
+    .list-row.saved-ticket { grid-template-columns: 40px minmax(0, 1fr); }
+    .list-row.saved-ticket > .row-actions { grid-column: 2; justify-self: start; }
     .table-search { flex: 1 1 100%; }
     .notice { flex-wrap: wrap; }
     .notice-action { margin-left: 30px; }

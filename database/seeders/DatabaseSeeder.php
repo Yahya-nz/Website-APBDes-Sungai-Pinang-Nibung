@@ -113,12 +113,12 @@ class DatabaseSeeder extends Seeder
         $sumurBor = BudgetLine::where('description', 'Pembuatan sumur bor')->value('id');
         $posyandu = BudgetLine::where('description', 'like', 'Penyelenggaraan Posyandu%')->value('id');
         $complaints = [
-            ['ticket' => 'ADU-2609-K7QM', 'name' => 'Siti Aminah', 'topic' => 'question', 'budget_line_id' => $sumurBor, 'message' => 'Sumur bor 12 unit dibangun di dusun mana saja? Di dusun kami belum ada.', 'status' => 'resolved', 'response' => 'Sumur bor dibangun bertahap. Tahap pertama 6 unit sudah selesai di Dusun I dan II, tahap kedua dijadwalkan November untuk Dusun III dan IV.', 'responded_at' => '2026-09-18 14:20:00', 'created_at' => '2026-09-16 08:15:00'],
+            ['ticket' => 'ADU-2609-K7QM', 'name' => 'Siti Aminah', 'contact' => '0812-0000-1111', 'recovery_pin' => '1234', 'topic' => 'question', 'budget_line_id' => $sumurBor, 'message' => 'Sumur bor 12 unit dibangun di dusun mana saja? Di dusun kami belum ada.', 'status' => 'resolved', 'response' => 'Sumur bor dibangun bertahap. Tahap pertama 6 unit sudah selesai di Dusun I dan II, tahap kedua dijadwalkan November untuk Dusun III dan IV.', 'responded_at' => '2026-09-18 14:20:00', 'created_at' => '2026-09-16 08:15:00'],
             ['ticket' => 'ADU-2610-P3WD', 'name' => null, 'topic' => 'suggestion', 'budget_line_id' => $posyandu, 'message' => 'Mohon jadwal posyandu diumumkan juga lewat grup WhatsApp RT supaya ibu-ibu tidak ketinggalan.', 'status' => 'in_progress', 'response' => 'Terima kasih, sedang kami koordinasikan dengan kader posyandu.', 'responded_at' => '2026-10-22 10:05:00', 'created_at' => '2026-10-21 19:40:00'],
             ['ticket' => 'ADU-2611-H8NT', 'name' => 'Rahmat', 'topic' => 'complaint', 'budget_line_id' => null, 'message' => 'Lampu jalan di depan balai desa mati sudah dua minggu. Apakah ada anggaran perbaikannya tahun ini?', 'status' => 'new', 'response' => null, 'responded_at' => null, 'created_at' => '2026-11-03 07:30:00'],
         ];
         foreach ($complaints as $data) {
-            $complaint = new Complaint($data + ['is_demo' => true, 'responded_by' => $data['responded_at'] ? $admin->id : null]);
+            $complaint = new Complaint($data + ['is_demo' => true, 'contact_key' => Complaint::contactKey($data['contact'] ?? null), 'responded_by' => $data['responded_at'] ? $admin->id : null]);
             $complaint->updated_at = $data['responded_at'] ?? $data['created_at'];
             $complaint->save();
         }

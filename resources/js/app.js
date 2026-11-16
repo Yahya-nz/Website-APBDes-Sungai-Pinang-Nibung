@@ -311,6 +311,13 @@ document.addEventListener('keydown', (event) => {
 });
 
 /* ---------- Formulir umum ---------- */
+document.querySelectorAll('[data-copy]').forEach((button) => button.addEventListener('click', async () => {
+    const label = button.querySelector('[data-copy-label]');
+    try {
+        await navigator.clipboard.writeText(button.dataset.copy);
+        if (label) { label.textContent = 'Tersalin'; setTimeout(() => { label.textContent = 'Salin nomor'; }, 2000); }
+    } catch { window.prompt('Salin nomor tiket ini:', button.dataset.copy); }
+}));
 document.querySelectorAll('[data-auto-submit]').forEach((select) => select.addEventListener('change', () => select.form.requestSubmit()));
 document.querySelectorAll('[data-toast]').forEach((toast) => {
     const close = () => { toast.classList.add('is-leaving'); toast.addEventListener('animationend', () => toast.remove(), { once: true }); };
