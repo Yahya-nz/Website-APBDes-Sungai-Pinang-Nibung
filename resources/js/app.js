@@ -440,6 +440,24 @@ document.querySelectorAll('[data-dataset-edit]').forEach((button) => button.addE
 }));
 if (datasetDialog?.hasAttribute('data-open-on-load')) datasetDialog.showModal();
 
+/* Dialog tanggapi pengaduan di halaman Pengaduan Masuk. */
+const complaintDialog = document.getElementById('complaint-dialog');
+const complaintForm = complaintDialog?.querySelector('[data-complaint-form]');
+document.querySelectorAll('[data-complaint-open]').forEach((button) => button.addEventListener('click', () => {
+    const item = JSON.parse(button.dataset.complaintOpen);
+    complaintForm.action = item.url;
+    complaintForm.elements.namedItem('_complaint_id').value = item.id;
+    complaintForm.elements.namedItem('status').value = item.status;
+    complaintForm.elements.namedItem('response').value = item.response ?? '';
+    complaintDialog.querySelectorAll('[data-field]').forEach((field) => {
+        const value = item[field.dataset.field];
+        field.textContent = value ?? (field.dataset.field === 'activity' ? '–' : '');
+    });
+    complaintDialog.querySelector('.alert')?.remove();
+    complaintDialog.showModal();
+}));
+if (complaintDialog?.hasAttribute('data-open-on-load')) complaintDialog.showModal();
+
 /* Pilih beberapa baris anggaran lalu tetapkan status verifikasinya sekaligus. */
 const bulkForm = document.querySelector('[data-bulk-bar]');
 if (bulkForm) {

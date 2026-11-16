@@ -35,6 +35,10 @@ Untuk masyarakat (tanpa login):
   status dan jenis pesan). Bila nomor tiket hilang, tiket dipulihkan dengan
   No. HP/email dan PIN yang diisi saat mengirim. Dilindungi pembatas kiriman,
   pembatas percobaan pemulihan, dan jebakan bot.
+- Rencana Program Desa: daftar program/kegiatan yang direncanakan desa.
+  Warga memberi suara Setuju atau Tidak setuju tanpa login (satu suara per
+  perangkat per program, bisa diubah selama voting dibuka). Hasilnya tampil
+  sebagai jumlah suara dan persentase.
 - Pencarian kegiatan (tekan `/`): semua kata harus cocok, hasil diurutkan
   dari yang paling relevan, kata kunci ditandai.
 - Status verifikasi data beserta sumber datasetnya.
@@ -54,8 +58,11 @@ Untuk perangkat desa (login):
   pada bidang dan tahun yang sama ditolak.
 - Catat realisasi per kegiatan. Peringatan muncul bila realisasi melebihi
   anggaran, dan pengeluaran langsung tampil di notifikasi warga.
-- Kotak masuk pengaduan dengan status Baru, Diproses, Selesai beserta
+- Kotak masuk pengaduan berbentuk tabel dengan pencarian nama pelapor atau
+  nomor tiket, filter status, halaman bernomor, dan dialog untuk menulis
   tanggapan.
+- Rencana program: tambah, ubah, dan hapus program; buka atau tutup voting
+  (bisa dengan batas tanggal) dan lihat hasil suara warga.
 - Pengguna & hak akses: tambah akun perangkat desa, cabut atau pulihkan
   aksesnya (akun tidak dihapus supaya riwayatnya tetap terbaca).
 - Riwayat aktivitas lengkap dengan saringan jenis, dan ganti kata sandi.
@@ -161,5 +168,9 @@ Nominal ditulis tanpa Rp dan tanpa titik ribuan, misalnya `25000000`.
 ![Pengguna dan hak akses](docs/screenshots/28-pengguna.jpg)
 ![Riwayat aktivitas](docs/screenshots/29-riwayat-aktivitas.jpg)
 ![Tiket saya dan pemulihan tiket](docs/screenshots/30-tiket-saya-pemulihan.jpg)
+![Rencana program dan voting](docs/screenshots/31-rencana-program.jpg)
+![Kelola rencana program](docs/screenshots/32-kelola-program.jpg)
+![Tambah rencana program](docs/screenshots/33-tambah-program.jpg)
+![Tanggapi pengaduan](docs/screenshots/34-tanggapi-pengaduan.jpg)
 
 </details>

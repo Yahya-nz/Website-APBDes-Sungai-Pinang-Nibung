@@ -17,10 +17,13 @@ Akun pengelola dibuat otomatis saat menjalankan `php artisan migrate --seed`
    tetapkan status verifikasinya, dan ubah informasi sumber di Riwayat Dataset.
 4. **Catat Realisasi**: tambah pengeluaran; pengeluaran baru muncul di lonceng
    notifikasi halaman publik.
-5. **Pengaduan Masuk**: tanggapi pesan warga. Warga mengecek tanggapan dengan
+5. **Pengaduan Masuk**: cari nama pelapor (misalnya `Siti`) atau nomor tiket,
+   pindah halaman, lalu klik **Tanggapi**. Warga mengecek tanggapan dengan
    nomor tiket di menu Pengaduan Warga.
-6. **Pengguna**: tambah akun perangkat desa lain, atau cabut aksesnya.
-7. **Riwayat Aktivitas** dan **Pengaturan** (ganti kata sandi).
+6. **Rencana Program**: tambah program baru, buka/tutup voting, dan lihat
+   hasil suara warga.
+7. **Pengguna**: tambah akun perangkat desa lain, atau cabut aksesnya.
+8. **Riwayat Aktivitas** dan **Pengaturan** (ganti kata sandi).
 
 Realisasi, sisa anggaran, dan penyerapan hanya dihitung dari kegiatan yang
 sudah terverifikasi. Coba ubah status baris "Insentif RT" untuk melihat
@@ -35,6 +38,13 @@ angkanya berubah di dashboard.
 
 Saat mengirim pesan baru, isi No. HP / email dan PIN pemulihan agar tiketnya
 bisa dipulihkan dengan cara yang sama.
+
+## Mencoba voting rencana program (tanpa login)
+
+Buka menu **Rencana Program**, lalu klik **Setuju** atau **Tidak setuju** pada
+program yang voting-nya masih dibuka. Jumlah suara dan persentase langsung
+berubah. Satu browser satu suara per program; pilihan bisa diubah, dan suara
+baru bisa dicoba dari browser lain atau jendela penyamaran.
 
 ## Catatan
 

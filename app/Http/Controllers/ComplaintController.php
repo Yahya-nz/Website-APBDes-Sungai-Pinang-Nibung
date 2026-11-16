@@ -8,6 +8,7 @@ use App\Http\Requests\ComplaintResponseRequest;
 use App\Models\ActivityLog;
 use App\Models\BudgetLine;
 use App\Models\Complaint;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -139,14 +140,23 @@ class ComplaintController extends Controller
         ]);
     }
 
+    /**
+     * Kotak masuk pengaduan untuk perangkat desa: tabel berhalaman, filter status, dan pencarian nama pelapor atau nomor tiket.
+     */
     public function manage(Request $request): View
     {
         $status = in_array($request->query('status'), array_keys(Complaint::STATUSES), true) ? $request->query('status') : null;
+        $search = mb_substr(trim(is_string($request->query('q')) ? $request->query('q') : ''), 0, 100);
+        $matching = fn (): Builder => Complaint::query()->when($search !== '', function (Builder $query) use ($search): void {
+            $like = '%'.addcslashes($search, '\\%_').'%';
+            $query->where(fn (Builder $inner) => $inner->where('name', 'like', $like)->orWhere('ticket', 'like', $like));
+        });
 
         return view('admin.complaints', [
-            'complaints' => Complaint::with('budgetLine:id,description')->when($status, fn ($query) => $query->where('status', $status))->latest('id')->paginate(10)->withQueryString(),
-            'counts' => Complaint::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
+            'complaints' => $matching()->with(['budgetLine:id,description', 'responder:id,name'])->when($status, fn (Builder $query) => $query->where('status', $status))->latest('id')->paginate(10)->withQueryString(),
+            'counts' => $matching()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
             'status' => $status,
+            'search' => $search,
             'payload' => ['year' => $this->latestYear()],
         ]);
     }
@@ -162,7 +172,13 @@ class ComplaintController extends Controller
         $complaint->save();
         ActivityLog::create(['user_id' => $request->user()->id, 'action' => 'complaint', 'description' => 'Menanggapi pengaduan '.$complaint->ticket.' ('.Complaint::STATUSES[$complaint->status].')']);
 
-        return redirect()->route('admin.complaints.index', array_filter(['status' => $request->input('status_filter')]))->with('success', 'Tanggapan untuk '.$complaint->ticket.' disimpan.');
+        $back = array_filter([
+            'status' => in_array($request->input('status_filter'), array_keys(Complaint::STATUSES), true) ? $request->input('status_filter') : null,
+            'q' => is_string($request->input('q_filter')) ? mb_substr($request->input('q_filter'), 0, 100) : null,
+            'page' => $request->integer('page_filter') > 1 ? $request->integer('page_filter') : null,
+        ]);
+
+        return redirect()->route('admin.complaints.index', $back)->with('success', 'Tanggapan untuk '.$complaint->ticket.' disimpan.');
     }
 
     /**

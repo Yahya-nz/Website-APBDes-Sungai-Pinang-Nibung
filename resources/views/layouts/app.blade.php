@@ -20,6 +20,7 @@
         ['label' => 'Laporan', 'icon' => 'file-text', 'route' => 'reports.index'],
     ];
     $serviceLinks = [
+        ['label' => 'Rencana Program', 'icon' => 'clipboard-list', 'route' => 'programs.index', 'active' => request()->routeIs('programs.*')],
         ['label' => 'Pengaduan Warga', 'icon' => 'message-square-text', 'route' => 'complaints.create', 'active' => request()->routeIs('complaints.*')],
         ['label' => 'Status Verifikasi', 'icon' => 'shield-check', 'route' => 'quality'],
         ['label' => 'Tentang Portal', 'icon' => 'info', 'route' => 'about'],
@@ -31,6 +32,7 @@
         ['label' => 'Pengelolaan Data', 'icon' => 'database', 'href' => route('admin.budgets.index', ['year' => $selectedYear]), 'active' => request()->routeIs('admin.budgets.*')],
         ['label' => 'Catat Realisasi', 'icon' => 'receipt-text', 'href' => route('admin.realizations.index', ['year' => $selectedYear]), 'active' => request()->routeIs('admin.realizations.*')],
         ['label' => 'Pengaduan Masuk', 'icon' => 'inbox', 'href' => route('admin.complaints.index'), 'active' => request()->routeIs('admin.complaints.*'), 'badge' => $newComplaints],
+        ['label' => 'Rencana Program', 'icon' => 'clipboard-list', 'href' => route('admin.programs.index'), 'active' => request()->routeIs('admin.programs.*')],
         ['label' => 'Pengguna', 'icon' => 'users-round', 'href' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
         ['label' => 'Riwayat Aktivitas', 'icon' => 'history', 'href' => route('admin.activities.index'), 'active' => request()->routeIs('admin.activities.*')],
         ['label' => 'Pengaturan', 'icon' => 'settings', 'href' => route('admin.settings'), 'active' => request()->routeIs('admin.settings*')],
@@ -165,7 +167,7 @@
             @if(session('success'))
                 <div class="toast" role="status" data-toast><x-icon name="circle-check" /><span>{{ session('success') }}</span><button class="icon-btn" type="button" data-toast-close aria-label="Tutup pesan"><x-icon name="x" /></button></div>
             @endif
-            @if($errors->any() && ! old('_budget_form') && ! old('_dataset_form'))
+            @if($errors->any() && ! old('_budget_form') && ! old('_dataset_form') && ! old('_complaint_form'))
                 <div class="alert" role="alert" tabindex="-1" data-error-summary><x-icon name="circle-alert" /><div><strong>Ada isian yang perlu diperbaiki.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div></div>
             @endif
 

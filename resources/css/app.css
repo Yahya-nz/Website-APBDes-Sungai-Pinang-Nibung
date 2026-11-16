@@ -507,6 +507,37 @@ a.list-row:hover .list-title { color: var(--blue); }
 .table td.cell-actions { text-align: right; }
 .user-cell { display: flex; align-items: center; gap: 12px; }
 .timeline-page { margin-top: 16px; }
+.program-card { display: flex; flex-direction: column; }
+.program-body { display: grid; gap: 12px; flex: 1; align-content: start; }
+.program-text { color: var(--ink-2); line-height: 1.65; }
+.program-budget { font-size: 13.5px; }
+.program-budget span { color: var(--muted); }
+.program-budget .money { font-weight: 700; color: var(--ink); }
+.vote-result { display: grid; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #f8fafc; }
+.vote-row { display: grid; gap: 6px; }
+.vote-head { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.vote-head span { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-weight: 600; }
+.vote-head svg.icon { width: 15px; height: 15px; }
+.vote-head strong { font-variant-numeric: tabular-nums; }
+.program-foot { justify-content: space-between; }
+.vote-form { display: flex; flex-wrap: wrap; gap: 8px; }
+.vote-btn { border-color: #bbf7d0; background: var(--green-50); color: #15803d; }
+.vote-btn:hover { border-color: #86efac; }
+.vote-btn.is-against { border-color: #fecaca; background: var(--red-50); color: #b91c1c; }
+.vote-btn.is-against:hover { border-color: #fca5a5; }
+.vote-btn.is-chosen { background: var(--green); border-color: var(--green); color: #fff; }
+.vote-btn.is-against.is-chosen { background: var(--red); border-color: var(--red); color: #fff; }
+.page-links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.page-link { display: inline-grid; place-items: center; min-width: 34px; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; color: var(--ink-2); font-size: 13px; font-weight: 600; }
+.page-link svg.icon { width: 16px; height: 16px; }
+a.page-link:hover { border-color: #cbd5e1; background: #f8fafc; color: var(--ink); }
+.page-link.is-active { border-color: var(--blue); background: var(--blue); color: #fff; }
+.page-link.is-disabled { opacity: .45; }
+.page-gap { padding: 0 4px; color: var(--muted); }
+.mono-ticket { font-variant-numeric: tabular-nums; letter-spacing: .3px; }
+.complaint-table .cell-message { min-width: 220px; max-width: 360px; color: var(--ink-2); }
+.complaint-meta { grid-template-columns: 110px 1fr; }
+.complaint-meta dt, .complaint-meta dd { padding: 6px 0; font-size: 13.5px; }
 a.list-title { display: block; }
 a.list-title:hover { color: var(--blue); }
 

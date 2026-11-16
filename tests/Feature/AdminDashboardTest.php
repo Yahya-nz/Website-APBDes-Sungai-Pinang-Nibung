@@ -27,7 +27,7 @@ class AdminDashboardTest extends TestCase
 
         $response->assertOk()
             ->assertSeeText('Halo, '.$admin->name)
-            ->assertSeeText('1 pengaduan baru belum ditanggapi')
+            ->assertSeeText('5 pengaduan baru belum ditanggapi')
             ->assertSeeText('Masih ada baris yang belum diverifikasi')
             ->assertSeeText('Belanja per sumber dana belum sesuai pendapatannya')
             ->assertSeeText('Tanggal pembaruan sumber belum dicatat')

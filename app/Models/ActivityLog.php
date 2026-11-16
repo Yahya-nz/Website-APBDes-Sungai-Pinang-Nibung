@@ -22,6 +22,7 @@ class ActivityLog extends Model
         'seed' => ['Menyiapkan data awal', 'database'],
         'realization' => ['Mencatat pengeluaran', 'receipt-text'],
         'complaint' => ['Menanggapi pengaduan', 'message-square-text'],
+        'program' => ['Mengelola rencana program', 'clipboard-list'],
         'user' => ['Mengelola pengguna', 'user-cog'],
         'password' => ['Mengganti kata sandi', 'key-round'],
     ];
